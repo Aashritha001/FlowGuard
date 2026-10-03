@@ -22,15 +22,28 @@ app = FastAPI(title="FlowGuard", docs_url=None if settings.env == "production" e
 def _startup():
     if settings.env == "production" and not settings.secret_key:
         raise RuntimeError("FLOWGUARD_SECRET_KEY must be set in production")
-    Base.metadata.create_all(engine)
-    ensure_columns(engine)
-    install_append_only_guards(engine)
+    import logging
+    from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
     from .setup import bootstrap, load_business_date
+    # Serverless hosts can start several instances at once: schema set-up and first-run bootstrap must tolerate
+    # another instance having just done the same thing.
+    for step in (lambda: Base.metadata.create_all(engine), lambda: ensure_columns(engine),
+                 lambda: install_append_only_guards(engine)):
+        try:
+            step()
+        except (IntegrityError, OperationalError, ProgrammingError) as e:
+            logging.getLogger("uvicorn.error").warning("Start-up step raced another instance: %s", type(e).__name__)
     with SessionLocal() as db:
-        pw = bootstrap(db)
+        try:
+            pw = bootstrap(db)
+        except IntegrityError:
+            db.rollback()
+            pw = None
         load_business_date(db)
+    if settings.storage_ephemeral:
+        logging.getLogger("uvicorn.error").warning(
+            "No DATABASE_URL: using temporary storage in /tmp. Data is lost when this instance stops.")
     if pw:
-        import logging
         logging.getLogger("uvicorn.error").warning(
             "First run: created Super Admin 'admin'%s. Change it under Settings > Your account.",
             "" if settings.admin_password else f" with password {pw}")

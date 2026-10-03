@@ -47,6 +47,27 @@ docker compose exec ollama ollama pull <any-local-model>
 ```
 The database lives in the `flowguard-data` volume. Set `OLLAMA_MODEL` in `.env`, or leave it empty to use the first local model.
 
+### Vercel
+The repository is ready to import into Vercel: `index.py` (root) is the entrypoint, `vercel.json` bundles the
+frontend, and `.vercelignore` keeps local data out of the upload.
+
+1. **Add New → Project → Import** this GitHub repository. Framework preset: **FastAPI** (or **Other**). Leave the
+   root directory as the repository root; no build command is needed (`frontend/index.html` is committed).
+2. **Add a Postgres database** so data survives restarts: **Storage → Create → Neon (Postgres)** and connect it to
+   the project. It sets `DATABASE_URL`, which FlowGuard picks up automatically (any `postgres://…` URL works).
+3. **Environment variables** (Settings → Environment Variables):
+   | Name | Value |
+   |---|---|
+   | `FLOWGUARD_ADMIN_PASSWORD` | the first `admin` password (12+ characters, upper and lower case, a number) |
+   | `FLOWGUARD_SECRET_KEY` | a long random string |
+   | `FLOWGUARD_ENV` | `production` |
+4. **Deploy**, sign in as `admin`, then follow *First steps* below.
+
+Without a database the app still starts, but keeps its data in `/tmp`, which Vercel wipes whenever an instance
+stops; the app shows a **"Temporary storage: data resets"** warning in that case. Uploads and downloads are
+limited to 4.5 MB each by Vercel (the data-pack CSV is well under that). The local AI assistant (Ollama) is not
+reachable from Vercel, so the assistant runs in its built-in structured mode.
+
 ### PostgreSQL
 Set `DATABASE_URL=postgresql+psycopg://…` and install `psycopg[binary]`. Money columns become `NUMERIC(14,2)`; append-only triggers are created for PostgreSQL too (`app/db.py`).
 

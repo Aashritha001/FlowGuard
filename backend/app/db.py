@@ -49,6 +49,8 @@ def make_engine(url: str):
     kw = {}
     if url.startswith("sqlite"):
         kw["connect_args"] = {"check_same_thread": False}
+    else:  # serverless hosts drop idle connections: check before use and keep the pool small
+        kw.update(pool_pre_ping=True, pool_size=2, max_overflow=3, pool_recycle=300)
     eng = create_engine(url, future=True, **kw)
     if url.startswith("sqlite"):
         @event.listens_for(eng, "connect")

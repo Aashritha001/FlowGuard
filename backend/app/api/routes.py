@@ -109,6 +109,7 @@ def meta(db, req):
                               "template": d.template} for d in rc.CATALOGUE.values()],
             "safety_controls": SAFETY_CONTROLS, "engine_version": ENGINE_VERSION, "roadmap": ROADMAP,
             "business_date": snapmod.today().isoformat(), "business_date_fixed": bool(settings.business_date),
+            "storage_ephemeral": settings.storage_ephemeral,
             "company": (db.get(Setting, "company").value if db.get(Setting, "company") else {}),
             "embedded": settings.embedded,
             "job_types": [{"code": t.code, "name": t.name} for t in db.scalars(select(JobType))],

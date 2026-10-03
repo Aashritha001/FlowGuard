@@ -59,7 +59,7 @@ class Agent(Base):
     vat_status: Mapped[str] = mapped_column(String(16))      # REGISTERED | NOT_REGISTERED | UNKNOWN
     vat_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     self_billing: Mapped[bool] = mapped_column(Boolean, default=True)
-    region: Mapped[str] = mapped_column(String(60), default="")
+    region: Mapped[str] = mapped_column(String(200), default="")  # holds the agent's address
     sage_supplier_ref: Mapped[str] = mapped_column(String(16), default="")
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)  # legacy column, unused
     paid_via_agent_id: Mapped[int | None] = mapped_column(ForeignKey("agents.id"), nullable=True)  # lead agent company
@@ -312,7 +312,7 @@ class Invoice(Base):
     vat: Mapped[object] = mapped_column(Money)
     gross: Mapped[object] = mapped_column(Money)
     vat_rate: Mapped[str] = mapped_column(String(8))
-    vat_treatment: Mapped[str] = mapped_column(String(40))
+    vat_treatment: Mapped[str] = mapped_column(String(80))
     self_billed: Mapped[bool] = mapped_column(Boolean, default=False)
     self_billing_ref: Mapped[str | None] = mapped_column(String(40), nullable=True)
     po_refs: Mapped[list] = mapped_column(JSON, default=list)
@@ -438,7 +438,7 @@ class AuditEvent(Base):
     new_value: Mapped[str] = mapped_column(String(120), default="")
     reason: Mapped[str] = mapped_column(Text, default="")
     config_version: Mapped[str] = mapped_column(String(40), default="")
-    ai_involvement: Mapped[str] = mapped_column(String(40), default="None")
+    ai_involvement: Mapped[str] = mapped_column(String(80), default="None")
     details: Mapped[dict] = mapped_column(JSON, default=dict)
 
 

@@ -9,12 +9,29 @@ def _bool(name: str, default: bool) -> bool:
     return v.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _database_url() -> tuple[str, bool]:
+    """Returns (url, ephemeral). Hosted Postgres providers (Vercel/Neon, Supabase, Render) hand out
+    postgres:// or postgresql:// URLs; SQLAlchemy needs the psycopg driver named explicitly.
+    On Vercel without a database the only writable place is /tmp, which is wiped between instances."""
+    url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL") or ""
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+    if url.startswith("postgresql://"):
+        url = "postgresql+psycopg://" + url[len("postgresql://"):]
+    if url:
+        return url, False
+    if os.environ.get("VERCEL"):
+        return "sqlite:////tmp/flowguard.db", True
+    return "sqlite:///./flowguard.db", False
+
+
 class Settings:
     def __init__(self) -> None:
-        self.database_url = os.environ.get("DATABASE_URL", "sqlite:///./flowguard.db")
+        self.database_url, self.storage_ephemeral = _database_url()
+        self.on_vercel = bool(os.environ.get("VERCEL"))
         self.secret_key = os.environ.get("FLOWGUARD_SECRET_KEY", "")
         self.env = os.environ.get("FLOWGUARD_ENV", "development")
-        self.cookie_secure = _bool("FLOWGUARD_COOKIE_SECURE", self.env == "production")
+        self.cookie_secure = _bool("FLOWGUARD_COOKIE_SECURE", self.env == "production" or self.on_vercel)
         self.session_hours = int(os.environ.get("FLOWGUARD_SESSION_HOURS", "8"))
         # OWASP 2023 guidance for PBKDF2-HMAC-SHA256 is 600k iterations.
         # The in-browser preview lowers this (see tools/build_preview.py) purely for speed.

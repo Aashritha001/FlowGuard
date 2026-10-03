@@ -177,6 +177,7 @@ function renderShell() {
         <button class="btn ghost menu-btn" id="menu" aria-label="Open navigation">${icon("menu")}</button>
         <div class="crumbs hide-sm">GSC Agency · Lane A + Lane B</div>
         <div class="spacer"></div>
+        ${FG.meta.storage_ephemeral ? `<span class="pill demo" title="No database is configured on this host (DATABASE_URL). Data is kept in temporary storage and is lost when the server instance restarts.">Temporary storage: data resets</span>` : ""}
         <span class="pill hide-sm" title="Business date used for pricing checks such as 'job date in the future'">${FG.meta.business_date_fixed ? "Business date" : "Today"} · ${dd(FG.meta.business_date)}</span>
         <span class="pill hide-sm">${esc(FG.user.display_name)} · ${esc(FG.user.role.replace("_", " ").toLowerCase())}</span>
         <button class="btn sm" id="logout">${icon("out", 14)} Sign out</button>

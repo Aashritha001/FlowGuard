@@ -1,0 +1,10 @@
+# Never upload local data, databases or the virtual environment to Vercel
+.venv/
+data/
+*.xlsx
+*.db
+*.db-journal
+docs/DATAPACK_TEST_REPORT.md
+backend/tests/
+**/__pycache__/
+.pytest_cache/
