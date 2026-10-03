@@ -1,0 +1,19 @@
+services:
+  flowguard:
+    build: .
+    ports: ["8000:8000"]
+    env_file: [.env]
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      DATABASE_URL: sqlite:////srv/data/flowguard.db
+    volumes: [flowguard-data:/srv/data]
+    depends_on: [ollama]
+  # Local LLM inside your own infrastructure. Pull a model once:
+  #   docker compose exec ollama ollama pull <model-of-your-choice>
+  ollama:
+    image: ollama/ollama:latest
+    volumes: [ollama:/root/.ollama]
+    # Not published to the host: only FlowGuard's backend can reach it.
+volumes:
+  ollama: {}
+  flowguard-data: {}

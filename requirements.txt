@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+sqlalchemy>=2.0.29
+# psycopg[binary]>=3.1   # uncomment for PostgreSQL
+pytest>=8
+httpx>=0.27
+openpyxl>=3.1             # data pack loader (app.datapack)
+fpdf2>=2.7                # invoice PDFs

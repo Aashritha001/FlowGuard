@@ -1,0 +1,1597 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlowGuard · GSC Job-to-Cash control</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230B1F3A'/%3E%3Cpath d='M12 4 6 7v4c0 4 3 7 6 8 3-1 6-4 6-8V7z' fill='none' stroke='white' stroke-width='1.8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>:root{
+  --paper:#F5F7FB; --surface:#FFFFFF; --surface-2:#F8FAFD; --ink:#0B1A30; --muted:#566377; --faint:#8793A6;
+  --line:#E3E8F0; --line-2:#CDD5E1; --brand:#0B1F3A; --brand-ink:#FFFFFF; --brand-soft:#E9EEF6;
+  --ready:#18794E; --ready-soft:#E3F3EA; --review:#9A5B00; --review-soft:#FDF0D8; --blocked:#B42318; --blocked-soft:#FCE6E3;
+  --info:#2457C5; --info-soft:#E7EEFB; --ai:#5B3FA6; --ai-soft:#EEEAF8; --focus:#2457C5; --hero:#0B1F3A;
+  --r-sm:4px; --r:8px; --r-lg:12px; --shadow:0 1px 2px rgba(11,31,58,.06),0 4px 16px rgba(11,31,58,.07);
+  --font:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#081221; --surface:#0E1B2E; --surface-2:#12223A; --ink:#E7EDF6; --muted:#9DABC0; --faint:#6E7D94;
+  --line:#1D2D46; --line-2:#2A3D5C; --brand:#F2F5FA; --brand-ink:#0B1F3A; --brand-soft:#1A2C49;
+  --ready:#4CC38A; --ready-soft:#0F2A22; --review:#E2A03C; --review-soft:#2C2111; --blocked:#F07060; --blocked-soft:#311512;
+  --info:#8DB0F5; --info-soft:#14223F; --ai:#A894EA; --ai-soft:#211A36; --focus:#8DB0F5; --hero:#0B1F3A; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --paper:#081221; --surface:#0E1B2E; --surface-2:#12223A; --ink:#E7EDF6; --muted:#9DABC0; --faint:#6E7D94;
+  --line:#1D2D46; --line-2:#2A3D5C; --brand:#F2F5FA; --brand-ink:#0B1F3A; --brand-soft:#1A2C49;
+  --ready:#4CC38A; --ready-soft:#0F2A22; --review:#E2A03C; --review-soft:#2C2111; --blocked:#F07060; --blocked-soft:#311512;
+  --info:#8DB0F5; --info-soft:#14223F; --ai:#A894EA; --ai-soft:#211A36; --focus:#8DB0F5; --hero:#0B1F3A; color-scheme:dark;}
+*{box-sizing:border-box}
+[hidden]{display:none!important}  /* author display rules (e.g. label.f{display:flex}) must not un-hide elements */
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:14px/1.45 var(--font);font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--info);text-decoration:none} a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+h1{font-size:22px;line-height:1.2;margin:0;font-weight:650;letter-spacing:-.01em}
+h2{font-size:16px;margin:0 0 10px;font-weight:650}
+h3{font-size:14px;margin:0 0 8px;font-weight:650}
+p{margin:0 0 8px} small,.muted{color:var(--muted)} .faint{color:var(--faint)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--surface);padding:7px 12px;border-radius:var(--r);cursor:pointer;font-weight:550;white-space:nowrap}
+.btn:hover{border-color:var(--muted)} .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)} .btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--blocked);border-color:color-mix(in srgb,var(--blocked) 40%,var(--line))}
+.btn.ghost{border-color:transparent;background:transparent} .btn.sm{padding:4px 9px;font-size:13px}
+input[type=text],input[type=password],input[type=search],input[type=date],input[type=number],select,textarea{border:1px solid var(--line-2);background:var(--surface);border-radius:var(--r);padding:7px 10px;min-width:0}
+textarea{width:100%;resize:vertical}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);font-weight:550}
+label.f>input,label.f>select,label.f>textarea{color:var(--ink);font-size:14px;font-weight:400}
+
+/* shell */
+.app{display:grid;grid-template-columns:236px 1fr;height:100%}
+.side{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:16px 16px 12px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--brand);display:grid;place-items:center;color:var(--brand-ink)}
+.brand b{font-size:15px;letter-spacing:.01em} .brand small{display:block;font-size:11.5px;line-height:1.2}
+.nav{padding:4px 8px 16px}
+.nav .grp{font-size:11.5px;color:var(--faint);padding:14px 10px 4px;font-weight:600}
+.nav a{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:6px;color:var(--ink);font-weight:500}
+.nav a:hover{background:var(--surface-2);text-decoration:none}
+.nav a.on{background:var(--brand-soft);color:var(--brand);font-weight:650}
+.nav a svg{width:16px;height:16px;flex:none;opacity:.75}
+.nav .count{margin-left:auto;font-size:11.5px;background:var(--review-soft);color:var(--review);border-radius:10px;padding:0 7px;font-weight:650}
+.side-foot{margin-top:auto;padding:12px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.main{display:flex;flex-direction:column;min-width:0;height:100%;overflow:hidden}
+.top{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line);background:var(--surface)}
+.top .crumbs{font-size:12.5px;color:var(--muted)} .top .spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid var(--line-2);color:var(--muted);background:var(--surface);white-space:nowrap}
+.pill.demo{border-color:color-mix(in srgb,var(--review) 45%,var(--line));color:var(--review);background:var(--review-soft)}
+.pill.local{color:var(--ai);border-color:color-mix(in srgb,var(--ai) 35%,var(--line));background:var(--ai-soft)}
+.content{overflow:auto;padding:20px 24px 80px;flex:1}
+.side .mark,.boot .mark{box-shadow:0 2px 8px rgba(11,31,58,.25)}
+.page-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.page-head .sub{color:var(--muted);margin-top:4px;max-width:72ch}
+.page-head .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.menu-btn{display:none}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px}
+.card.flush{padding:0} .card>h2:first-child{margin-bottom:12px}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:10px} .card-head h2{margin:0} .card-head .r{margin-left:auto}
+.grid{display:grid;gap:14px} .g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))} .g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.g-main{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap} .stack{display:flex;flex-direction:column;gap:10px}
+.sep{height:1px;background:var(--line);margin:12px 0}
+.mt{margin-top:14px} .mb{margin-bottom:14px}
+
+/* KPIs */
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;text-align:left;display:block;width:100%}
+.kpi:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.kpi .l{font-size:12.5px;color:var(--muted);font-weight:550}
+.kpi .v{font-size:24px;font-weight:650;letter-spacing:-.02em;margin-top:4px}
+.kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi.zero{border-color:color-mix(in srgb,var(--ready) 45%,var(--line));background:linear-gradient(0deg,var(--ready-soft),var(--surface) 70%)}
+.kpi.zero .v{color:var(--ready)} .kpi.bad{border-color:var(--blocked)} .kpi.bad .v{color:var(--blocked)}
+.target{font-size:11.5px;font-weight:650;color:var(--ready);border:1px solid currentColor;border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:middle}
+
+/* status language: colour + shape so it never relies on colour alone */
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:650;padding:2px 8px 2px 7px;border-radius:999px;white-space:nowrap}
+.st::before{content:"";width:8px;height:8px;flex:none}
+.st.READY{background:var(--ready-soft);color:var(--ready)} .st.READY::before{background:currentColor;border-radius:50%}
+.st.NEEDS_REVIEW{background:var(--review-soft);color:var(--review)} .st.NEEDS_REVIEW::before{border:2px solid currentColor;border-radius:50%;width:6px;height:6px;background:linear-gradient(90deg,currentColor 50%,transparent 50%)}
+.st.BLOCKED{background:var(--blocked-soft);color:var(--blocked)} .st.BLOCKED::before{background:currentColor;border-radius:1px}
+.st.INVOICED{background:var(--info-soft);color:var(--info)} .st.INVOICED::before{background:currentColor;clip-path:polygon(0 50%,40% 100%,100% 0,100% 25%,40% 80%,0 30%)}
+.st.neutral{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)} .st.neutral::before{display:none}
+.tag{display:inline-block;font-size:11.5px;padding:1px 6px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-weight:550;white-space:nowrap}
+.tag.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--ink)}
+.tag.ai{background:var(--ai-soft);color:var(--ai);border-color:transparent}
+.prio{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:4px}
+.prio.CRITICAL{background:var(--blocked);color:#fff} .prio.HIGH{background:var(--review-soft);color:var(--review)} .prio.NORMAL{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+
+/* tables */
+.tbl-wrap{overflow:auto;border-radius:var(--r-lg)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+.t th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--surface-2);position:sticky;top:0;white-space:nowrap;z-index:1}
+.t th.sortable{cursor:pointer} .t th.sortable:hover{color:var(--ink)}
+.t td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+.t tr:last-child td{border-bottom:0}
+.t tbody tr.click{cursor:pointer} .t tbody tr.click:hover td{background:var(--surface-2)}
+.t td.num,.t th.num{text-align:right;white-space:nowrap}
+.t td.nowrap{white-space:nowrap}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:12px;border-bottom:1px solid var(--line)}
+.filters select,.filters input{padding:6px 8px;font-size:13px}
+.pager{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);margin-bottom:4px}
+
+/* bars */
+.bar-list{display:flex;flex-direction:column;gap:8px}
+.bar-item{display:grid;grid-template-columns:minmax(120px,1fr) 2fr auto;gap:10px;align-items:center;cursor:pointer;padding:3px 4px;border-radius:6px}
+.bar-item:hover{background:var(--surface-2)}
+.bar-track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.bar-fill{height:100%;background:var(--brand);border-radius:5px}
+.leak{display:grid;grid-template-columns:1fr auto auto;gap:4px 14px;align-items:center;padding:9px 10px;border-radius:var(--r);border:1px solid var(--line);cursor:pointer;background:var(--surface)}
+.leak:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.leak .lv{font-weight:650;text-align:right} .leak .lj{color:var(--muted);text-align:right;font-size:12.5px}
+
+/* money map */
+.mm{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:8px 2px 4px}
+.mm-col{display:flex;flex-direction:column;gap:10px;justify-content:center;min-width:148px;flex:1}
+.mm-node{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-lg);padding:12px 14px;cursor:pointer;text-align:left;width:100%}
+.mm-node:hover{box-shadow:var(--shadow);border-color:var(--line-2)}
+.mm-node .t1{font-size:12.5px;color:var(--muted);font-weight:600}
+.mm-node .t2{font-size:20px;font-weight:650;margin-top:2px;letter-spacing:-.02em}
+.mm-node .t3{font-size:12.5px;color:var(--muted)}
+.mm-node.context{background:var(--surface-2);border-style:dashed}
+.mm-node.ready{border-left:4px solid var(--ready)} .mm-node.review{border-left:4px solid var(--review)} .mm-node.blocked{border-left:4px solid var(--blocked)}
+.mm-node.lane{border-color:var(--brand);background:var(--brand-soft)}
+.mm-node .leakflag{display:inline-block;margin-top:6px;font-size:11.5px;color:var(--blocked);font-weight:650}
+.mm-link{display:flex;align-items:center;width:28px;flex:none}
+.mm-link span{display:block;width:100%;background:var(--brand);opacity:.35;border-radius:3px}
+.lane-label{font-size:11.5px;font-weight:700;color:var(--brand);padding:0 4px 4px}
+.scope-band{display:flex;gap:8px;font-size:12px;color:var(--muted);margin-bottom:6px}
+
+/* trace */
+.trace{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.2fr);gap:14px}
+.tl{position:relative;padding-left:4px}
+.tl-node{position:relative;display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:7px 10px 7px 4px;border-radius:var(--r);cursor:pointer;border:1px solid transparent;width:100%;background:none;text-align:left}
+.tl-node:hover{background:var(--surface-2)} .tl-node.sel{background:var(--brand-soft);border-color:color-mix(in srgb,var(--brand) 30%,transparent)}
+.tl-node .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--ready);background:var(--surface);justify-self:center;z-index:1}
+.tl-node.fail .dot{border-color:var(--blocked);background:var(--blocked)} .tl-node.info .dot{border-color:var(--info)}
+.tl-node.ok .dot{background:var(--ready)}
+.tl-node:not(:last-child)::after{content:"";position:absolute;left:14px;top:26px;bottom:-12px;width:2px;background:var(--line-2)}
+.tl-node .lbl{font-size:12px;color:var(--muted);font-weight:600} .tl-node .val{font-weight:650}
+.tl-node .amt{font-weight:650;white-space:nowrap}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;word-break:break-word}
+.why{font-size:11px;font-weight:700;color:var(--info);border:1px solid color-mix(in srgb,var(--info) 40%,transparent);border-radius:4px;padding:0 5px;cursor:pointer;background:none;margin-left:4px}
+
+/* callouts */
+.note{border-radius:var(--r);padding:10px 12px;font-size:13px;border:1px solid var(--line);background:var(--surface-2)}
+.note.warn{background:var(--review-soft);border-color:transparent;color:color-mix(in srgb,var(--review) 80%,var(--ink))}
+.note.bad{background:var(--blocked-soft);border-color:transparent;color:color-mix(in srgb,var(--blocked) 80%,var(--ink))}
+.note.good{background:var(--ready-soft);border-color:transparent;color:color-mix(in srgb,var(--ready) 75%,var(--ink))}
+.note.ai{background:var(--ai-soft);border-color:transparent}
+.reason{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;background:var(--surface)}
+.reason+.reason{margin-top:8px}
+
+/* steps */
+.steps{display:flex;gap:6px;flex-wrap:wrap;font-size:12.5px}
+.steps .s{padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.steps .s.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)} .steps .s.done{color:var(--ready);border-color:var(--ready)}
+
+/* toast, modal */
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:var(--r);z-index:60;box-shadow:var(--shadow);max-width:90vw}
+.toast.err{background:var(--blocked);color:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(8,18,33,.5);display:grid;place-items:center;z-index:50;padding:16px}
+.modal{background:var(--surface);border-radius:var(--r-lg);max-width:560px;width:100%;padding:18px;box-shadow:var(--shadow);max-height:90vh;overflow:auto}
+
+/* AI bubble */
+.ai-fab{position:fixed;right:22px;bottom:calc(22px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;background:var(--ai);color:#fff;border:0;cursor:pointer;box-shadow:0 6px 20px rgba(60,40,120,.35);display:grid;place-items:center;z-index:40}
+.ai-fab svg{width:24px;height:24px}
+.ai-panel{position:fixed;right:22px;bottom:calc(86px + env(safe-area-inset-bottom,0px));width:420px;max-width:calc(100vw - 24px);height:min(640px,calc(100vh - 120px));background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:0 12px 40px rgba(11,31,58,.2);display:flex;flex-direction:column;z-index:41;overflow:hidden}
+.ai-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.ai-head b{font-size:14px}
+.ai-gov{display:flex;gap:4px;flex-wrap:wrap;padding:6px 14px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.ai-gov span{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px;background:var(--surface)}
+.ai-log{flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:92%;padding:9px 11px;border-radius:10px;font-size:13.5px}
+.msg.me{align-self:flex-end;background:var(--brand);color:var(--brand-ink)}
+.msg.bot{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line)}
+.msg.rejected{background:var(--blocked-soft);border-color:transparent}
+.msg .meta{font-size:11px;color:var(--faint);margin-top:6px}
+.msg table.t{font-size:12px;margin-top:6px;background:var(--surface)} .msg .t td,.msg .t th{padding:5px 7px}
+.ai-chips{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:0 14px 8px;scrollbar-width:thin}
+.ai-chips button{flex:none}
+.ai-chips button{font-size:12px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 9px;cursor:pointer;color:var(--muted)}
+.ai-chips button:hover{color:var(--ink);border-color:var(--line-2)}
+.ai-input{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--line)}
+.ai-input input{flex:1}
+
+/* login */
+.login{min-height:100%;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.9fr)}
+.login-hero{background:var(--hero);background-image:radial-gradient(1200px 500px at 110% -10%,#1C3A66 0,transparent 60%);color:#E6ECF5;padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between}
+.login-hero h1{font-size:38px;line-height:1.08;max-width:15ch;font-weight:700;letter-spacing:-.03em;color:#fff}
+.login-hero .flow{display:flex;flex-direction:column;gap:0;margin:28px 0;max-width:420px}
+.login-hero .flow div{display:flex;align-items:center;gap:12px;padding:7px 0;font-size:14px;color:#C3CFE2}
+.login-hero .flow div i{width:10px;height:10px;border-radius:50%;border:2px solid #8FA4C4;flex:none}
+.login-hero .flow div.k i{background:#fff;border-color:#fff} .login-hero .flow div.k{color:#fff;font-weight:600}
+.login-hero .p{font-size:13px;color:#9FB0CC;max-width:52ch}
+.login-form{padding:48px;display:flex;flex-direction:column;justify-content:center;gap:14px;background:var(--surface)}
+.login-form form{display:flex;flex-direction:column;gap:12px;max-width:380px}
+.acct{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);cursor:pointer;background:var(--surface);text-align:left;width:100%}
+.acct:hover{border-color:var(--brand)} .acct b{font-size:13px} .acct small{grid-column:1}
+.acct .tag{grid-row:1/3;grid-column:2;align-self:center}
+
+.boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--paper);z-index:100}
+.boot .box{width:min(440px,90vw)} .boot .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:12px}
+.boot .bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .4s ease}
+
+@media (max-width:1100px){.g6{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g-main,.trace{grid-template-columns:1fr}}
+@media (max-width:800px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:260px;z-index:45;transform:translateX(-100%);transition:transform .2s}
+  .side.open{transform:none;box-shadow:var(--shadow)}
+  .menu-btn{display:inline-flex}
+  .content{padding:14px 14px 90px} .top{padding:10px 14px}
+  .g2,.g3,.g4,.g6{grid-template-columns:1fr 1fr} .login{grid-template-columns:1fr} .login-hero{padding:28px} .login-form{padding:24px}
+  .login-hero h1{font-size:28px} .top .hide-sm{display:none}
+}
+
+/* ---------------------------------------------------------------- motion
+   One easing family, short durations. Everything below is switched off by prefers-reduced-motion. */
+:root{--ease:cubic-bezier(.22,.8,.24,1);--ease-in:cubic-bezier(.5,0,.75,0);--t-fast:.14s;--t:.24s;--t-slow:.45s}
+.content{scroll-behavior:smooth}
+.btn,.kpi,.mm-node,.leak,.acct,.nav a,.tl-node,.bar-item,.t td,.pill,.tag,.ai-chips button,.why,
+input,select,textarea{transition:background-color var(--t) var(--ease),border-color var(--t) var(--ease),color var(--t) var(--ease),
+  box-shadow var(--t) var(--ease),transform var(--t) var(--ease),opacity var(--t) var(--ease),filter var(--t) var(--ease)}
+.btn:active:not(:disabled){transform:scale(.97);transition-duration:.06s}
+.btn.primary:hover{box-shadow:0 4px 14px color-mix(in srgb,var(--brand) 30%,transparent)}
+.kpi:hover,.mm-node:hover,.leak:hover{transform:translateY(-2px)}
+.kpi:active,.mm-node:active,.leak:active{transform:translateY(0) scale(.99)}
+.acct:hover{transform:translateX(3px)}
+.nav a{position:relative}
+.nav a::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:2px;background:var(--brand);
+  transform:scaleY(0);transition:transform var(--t) var(--ease)}
+.nav a.on::before{transform:scaleY(1)}
+.nav a:hover svg{transform:translateX(1px);opacity:1} .nav a svg{transition:transform var(--t) var(--ease),opacity var(--t)}
+.nav .count{animation:pop .4s var(--ease) both}
+input:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 18%,transparent);outline:none}
+
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.6)}70%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@keyframes grow-x{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+@keyframes flow{from{background-position:0 0}to{background-position:28px 0}}
+@keyframes slide-in-r{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,16px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes toast-out{to{opacity:0;transform:translate(-50%,10px) scale(.98)}}
+@keyframes pulse-ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ai) 45%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+@keyframes dot-pop{0%{transform:scale(0)}80%{transform:scale(1.25)}100%{transform:scale(1)}}
+
+/* page enter: direct children rise in, staggered */
+.content.enter>*{animation:rise var(--t-slow) var(--ease) both}
+.content.enter>*:nth-child(2){animation-delay:.05s} .content.enter>*:nth-child(3){animation-delay:.1s}
+.content.enter>*:nth-child(4){animation-delay:.15s} .content.enter>*:nth-child(5){animation-delay:.2s}
+.content.enter>*:nth-child(n+6){animation-delay:.25s}
+.content.enter .grid>*{animation:rise var(--t-slow) var(--ease) both;animation-delay:calc(var(--gi,0) * 45ms + 80ms)}
+.content.enter tbody tr.stagger{animation:fade .35s var(--ease) both;animation-delay:calc(var(--ri,0) * 18ms + 120ms)}
+.content.enter .tl-node{animation:rise .35s var(--ease) both;animation-delay:calc(var(--ti,0) * 40ms + 120ms)}
+.content.enter .tl-node .dot{animation:dot-pop .35s var(--ease) both;animation-delay:calc(var(--ti,0) * 40ms + 220ms)}
+.content.enter .st{animation:fade .3s var(--ease) both;animation-delay:.2s}
+
+/* bars and money flow */
+.bar-fill{transform-origin:left center;animation:grow-x .8s var(--ease) both;animation-delay:.15s}
+.bar-item:hover .bar-fill{filter:brightness(1.12)}
+.mm-link span{background:repeating-linear-gradient(90deg,var(--brand) 0 14px,transparent 14px 28px);opacity:.45;animation:flow 1.1s linear infinite}
+
+/* loading skeleton */
+.skel{display:flex;flex-direction:column;gap:14px;padding:4px 0}
+.skel i{display:block;height:14px;border-radius:6px;background:linear-gradient(90deg,var(--surface-2) 25%,var(--line) 37%,var(--surface-2) 63%);
+  background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+.skel i.h{height:26px;width:38%} .skel i.k{height:86px;border-radius:var(--r-lg)} .skel .row{gap:14px;flex-wrap:nowrap} .skel .row i{flex:1}
+
+/* overlays */
+.toast{animation:toast-in .3s var(--ease) both} .toast.out{animation:toast-out .25s var(--ease-in) both}
+.modal-bg{animation:fade .2s var(--ease) both} .modal{animation:slide-in-r .28s var(--ease) both}
+.modal-bg.out{animation:fade .18s var(--ease-in) reverse both} .modal-bg.out .modal{animation:slide-in-r .18s var(--ease-in) reverse both}
+.ai-panel{animation:slide-in-r .3s var(--ease) both;transform-origin:bottom right}
+.ai-fab{transition:transform var(--t) var(--ease),box-shadow var(--t) var(--ease)}
+.ai-fab:hover{transform:translateY(-2px) rotate(8deg) scale(1.05)} .ai-fab:active{transform:scale(.94)}
+.ai-fab.idle{animation:pulse-ring 2.2s var(--ease) 1.2s 3}
+.msg{animation:rise .28s var(--ease) both}
+.msg.typing span{display:inline-block;width:6px;height:6px;margin:0 2px;border-radius:50%;background:var(--muted);animation:pop .9s ease-in-out infinite alternate}
+.msg.typing span:nth-child(2){animation-delay:.15s} .msg.typing span:nth-child(3){animation-delay:.3s}
+.side{transition:transform .28s var(--ease),box-shadow .28s var(--ease)}
+
+/* login */
+.login-hero>*{animation:rise .6s var(--ease) both} .login-hero>*:nth-child(2){animation-delay:.08s}
+.login-hero .flow div{animation:rise .5s var(--ease) both;animation-delay:calc(var(--fi,0) * 90ms + 250ms)}
+.login-form>*{animation:rise .5s var(--ease) both;animation-delay:.15s} .login-form .acct{animation:rise .4s var(--ease) both;animation-delay:calc(var(--ai,0) * 40ms + 300ms)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.t td b{white-space:nowrap}
+</style><script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head><body><noscript>FlowGuard needs JavaScript.</noscript>
+<script>/* FlowGuard frontend core: API transport, state, routing, helpers, shell, login, AI assistant.
+   All authorisation is enforced by the server; hiding a menu item here is a convenience, not a control. */
+"use strict";
+const FG = { user: null, csrf: null, meta: null, embedded: !!window.FG_EMBED, py: null, token: null, lastProposal: null, aiOpen: false };
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = v => v === null || v === undefined ? "" : String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const gbp = v => v === null || v === undefined || v === "" ? "–" : "£" + Number(v).toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const gbp0 = v => v === null || v === undefined || v === "" ? "–" : "£" + Number(v).toLocaleString("en-GB", { maximumFractionDigits: 0 });
+const num = v => Number(v || 0).toLocaleString("en-GB");
+const dt = v => v ? new Date(v.replace(" ", "T")).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "–";
+const dd = v => v ? new Date(v + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "–";
+const STATUS_LABEL = { READY: "Ready", NEEDS_REVIEW: "Needs review", BLOCKED: "Blocked", INVOICED: "Invoiced" };
+const st = (s, label) => s ? `<span class="st ${esc(s)}">${esc(label || STATUS_LABEL[s] || s)}</span>` : `<span class="st neutral">–</span>`;
+const code = c => `<span class="tag code">${esc(c)}</span>`;
+const qs = o => Object.entries(o).filter(([, v]) => v !== "" && v !== null && v !== undefined).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&");
+
+/* ---------------------------------------------------------------- transport */
+async function api(method, path, { query = {}, body = null } = {}) {
+  let res;
+  if (FG.embedded) {
+    const r = FG.py.call(method, path, JSON.stringify(query), body ? JSON.stringify(body) : "", FG.token || "", FG.csrf || "");
+    res = JSON.parse(r);
+    if (res.set_session) { FG.token = res.set_session[0]; FG.csrf = res.set_session[1]; }
+    if (res.clear_session) { FG.token = null; FG.csrf = null; }
+  } else {
+    const q = qs(query);
+    const r = await fetch(path + (q ? "?" + q : ""), {
+      method, credentials: "same-origin",
+      headers: { "Content-Type": "application/json", ...(FG.csrf ? { "X-CSRF-Token": FG.csrf } : {}) },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const ct = r.headers.get("content-type") || "";
+    const binary = /pdf|zip|octet-stream/.test(ct);
+    res = { status: r.status, content_type: ct.split(";")[0], body: ct.includes("json") ? await r.json() : binary ? await r.blob() : await r.text(),
+            filename: (r.headers.get("content-disposition") || "").split("filename=")[1]?.replace(/"/g, "") };
+  }
+  if (res.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/me") { FG.user = null; renderLogin("Your session has ended. Sign in again."); throw new Error("Sign in required"); }
+  if (res.status >= 400) { const e = new Error(res.body?.message || "Request failed"); e.status = res.status; e.body = res.body; throw e; }
+  if (res.content_type && res.content_type !== "application/json") return { text: res.body, filename: res.filename, type: res.content_type };
+  return res.body;
+}
+const GET = (p, query) => api("GET", p, { query });
+const POST = (p, body) => api("POST", p, { body: body || {} });
+const PUT = (p, body) => api("PUT", p, { body: body || {} });
+
+function download(text, filename, type = "text/csv") {
+  const url = URL.createObjectURL(text instanceof Blob ? text : new Blob([text], { type }));
+  const a = document.createElement("a"); a.href = url; a.download = filename || "export.csv"; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+function toast(msg, err) {
+  const t = document.createElement("div"); t.className = "toast" + (err ? " err" : ""); t.setAttribute("role", "status"); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => leave(t), err ? 6000 : 3500);
+}
+function modal(html, onMount) {
+  const bg = document.createElement("div"); bg.className = "modal-bg";
+  bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${html}</div>`;
+  document.body.appendChild(bg);
+  const close = () => leave(bg);
+  bg.addEventListener("click", e => { if (e.target === bg || e.target.closest("[data-close]")) close(); });
+  document.addEventListener("keydown", function k(e) { if (e.key === "Escape") { close(); document.removeEventListener("keydown", k); } });
+  onMount && onMount(bg.querySelector(".modal"), close);
+  bg.querySelector("input,select,textarea,button")?.focus();
+  return close;
+}
+/* ---------------------------------------------------------------- motion helpers */
+const REDUCED = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+// Plays the element's exit animation (".out") before removing it; removes at once when motion is reduced.
+function leave(el, ms = 260) {
+  if (REDUCED || !el.isConnected) { el.remove(); return; }
+  el.classList.add("out"); setTimeout(() => el.remove(), ms);
+}
+const SKELETON = `<div class="skel" aria-label="Loading"><i class="h"></i><div class="row"><i class="k"></i><i class="k"></i><i class="k"></i><i class="k"></i></div><i></i><i style="width:85%"></i><i style="width:70%"></i><i style="width:92%"></i></div>`;
+// Counts a rendered figure up from zero, keeping its prefix, suffix, separators and decimals.
+function countUp(el, ms = 750) {
+  if (REDUCED || el.children.length || el.dataset.counted) return;
+  const m = el.textContent.trim().match(/^([^\d-]*)(-?[\d,]*\.?\d+)(.*)$/);
+  if (!m) return;
+  const target = parseFloat(m[2].replace(/,/g, "")); if (!isFinite(target) || target === 0) return;
+  const dec = (m[2].split(".")[1] || "").length, comma = m[2].includes(",") || Math.abs(target) >= 10000;
+  const fmt = v => m[1] + v.toLocaleString("en-GB", { minimumFractionDigits: dec, maximumFractionDigits: dec, useGrouping: comma }) + m[3];
+  const final = el.textContent; el.dataset.counted = "1";
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = k < 1 ? fmt(target * e) : final;
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+// Staggered entrance for a freshly rendered page. The class is removed afterwards so hover transforms work again.
+function enter(c) {
+  if (REDUCED) return;
+  $$(".grid", c).forEach(g => [...g.children].forEach((x, i) => x.style.setProperty("--gi", Math.min(i, 12))));
+  $$("tbody", c).forEach(tb => [...tb.rows].slice(0, 30).forEach((tr, i) => { tr.classList.add("stagger"); tr.style.setProperty("--ri", i); }));
+  $$(".tl-node", c).forEach((n, i) => n.style.setProperty("--ti", Math.min(i, 20)));
+  c.classList.remove("enter"); void c.offsetWidth; c.classList.add("enter");
+  $$(".kpi .v, .mm-node .t2", c).forEach(el => countUp(el));
+  clearTimeout(c._enterT); c._enterT = setTimeout(() => c.classList.remove("enter"), 1500);
+}
+
+async function downloadFile(path, fallbackName, btn) {
+  const label = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.textContent = "Preparing…"; }
+  try { const f = await api("GET", path); download(f.text, f.filename || fallbackName); }
+  catch (e) { toast(e.message, true); }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = label; } }
+}
+const errBox = e => `<div class="note bad"><b>${esc(e.status === 403 ? "Not permitted" : "Could not load")}</b><br>${esc(e.message)}</div>`;
+
+/* ---------------------------------------------------------------- icons */
+const I = {
+  dash: "M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 3v6h8V3z", map: "M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3zM9 3v15M15 6v15",
+  jobs: "M4 6h16M4 12h16M4 18h10", review: "M12 3 2 21h20L12 3zM12 10v5M12 18h.01", inv: "M6 2h9l5 5v15H6zM14 2v6h6M9 13h6M9 17h6",
+  client: "M3 21V7l9-4 9 4v14M9 21v-6h6v6", agent: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0", contract: "M7 3h10v18H7zM10 7h4M10 11h4M10 15h2",
+  rate: "M4 19V5M4 19h16M8 15l3-4 3 2 5-6", rules: "M12 2 4 6v6c0 5 4 9 8 10 4-1 8-5 8-10V6z", config: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4",
+  import: "M12 3v12M7 10l5 5 5-5M4 21h16", integ: "M7 7h4v4H7zM13 13h4v4h-4zM11 9h4v4", recon: "M4 7h11l-3-3M20 17H9l3 3",
+  audit: "M5 3h14v18l-7-4-7 4z", ai: "M12 3l2.5 5.5L20 11l-5.5 2.5L12 19l-2.5-5.5L4 11l5.5-2.5z", bell: "M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 21h4",
+  gear: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
+  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0", menu: "M3 6h18M3 12h18M3 18h18", out: "M9 21H5V3h4M16 17l5-5-5-5M21 12H9",
+  shield: "M12 2 4 6v6c0 5 4 9 8 10 4-1 8-5 8-10V6zM9 12l2 2 4-4"
+};
+const icon = (n, s = 16) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${I[n] || I.dash}"/></svg>`;
+
+/* ---------------------------------------------------------------- routing */
+const ROUTES = {};
+const route = (pattern, fn) => { ROUTES[pattern] = fn; };
+function go(h) { if (location.hash === h) onRoute(); else location.hash = h; }
+function parseHash() {
+  const [p, q] = (location.hash.slice(1) || "/").split("?");
+  return { path: p || "/", query: Object.fromEntries(new URLSearchParams(q || "")) };
+}
+async function onRoute() {
+  if (!FG.user) return;
+  const { path, query } = parseHash();
+  for (const [pat, fn] of Object.entries(ROUTES)) {
+    const rx = new RegExp("^" + pat.replace(/:(\w+)/g, "(?<$1>[^/]+)") + "$");
+    const m = path.match(rx);
+    if (m) {
+      const c = $("#content"); c.classList.remove("enter"); c.innerHTML = SKELETON; c.scrollTop = 0;
+      $$(".nav a").forEach(a => a.classList.toggle("on", path.startsWith(a.dataset.base) && (a.dataset.base !== "/" || path === "/")));
+      $(".side")?.classList.remove("open");
+      try { await fn(c, m.groups || {}, query); } catch (e) { if (e.message !== "Sign in required") c.innerHTML = errBox(e); console.error(e); }
+      enter(c);
+      return;
+    }
+  }
+  $("#content").innerHTML = `<div class="empty"><b>Page not found</b><a href="#/">Go to the dashboard</a></div>`; enter($("#content"));
+}
+window.addEventListener("hashchange", onRoute);
+
+/* ---------------------------------------------------------------- shell */
+const STAFF_NAV = [
+  ["Overview", [["/", "Dashboard", "dash"], ["/money-map", "Money Map", "map"]]],
+  ["Work", [["/jobs", "Jobs", "jobs"], ["/reviews", "Review Centre", "review", "reviewCount"], ["/invoices", "Invoices", "inv"], ["/reconciliation", "Reconciliation", "recon"]]],
+  ["Commercial", [["/clients", "Clients", "client"], ["/agents", "Agents / Suppliers", "agent"], ["/contracts", "Contracts", "contract"], ["/rate-cards", "Rate Cards", "rate"], ["/rules", "Rules", "rules"], ["/configuration", "Configuration", "config"]]],
+  ["Data", [["/imports", "Imports", "import"], ["/integrations", "Integrations", "integ"]]],
+  ["Governance", [["/audit", "Audit Trail", "audit"], ["/ai", "AI & Automation", "ai"], ["/notifications", "Notifications", "bell"], ["/settings", "Settings", "gear"]]],
+];
+const AGENT_NAV = [["", [["/", "Dashboard", "dash"], ["/my-jobs", "My Jobs", "jobs"], ["/my-invoices", "My Invoices", "inv"], ["/notifications", "Notifications", "bell"], ["/profile", "Profile", "user"]]]];
+
+function renderShell() {
+  const agent = FG.user.role === "AGENT";
+  const nav = (agent ? AGENT_NAV : STAFF_NAV).map(([g, items]) =>
+    (g ? `<div class="grp">${esc(g)}</div>` : "") + items.map(([h, l, ic, cnt]) =>
+      `<a href="#${h}" data-base="${h}">${icon(ic)}<span>${esc(l)}</span>${cnt ? `<span class="count" id="${cnt}" hidden></span>` : ""}</a>`).join("")).join("");
+  document.body.innerHTML = `
+  <div class="app">
+    <aside class="side" aria-label="Main navigation">
+      <div class="brand"><div class="mark">${icon("shield", 18)}</div><div><b>FlowGuard</b><small class="muted">${agent ? "Agent portal" : "Job-to-Cash control"}</small></div></div>
+      <nav class="nav">${nav}</nav>
+      <div class="side-foot">Rules decide the money.<br>AI explains and improves the rules.</div>
+    </aside>
+    <div class="main">
+      <header class="top">
+        <button class="btn ghost menu-btn" id="menu" aria-label="Open navigation">${icon("menu")}</button>
+        <div class="crumbs hide-sm">GSC Agency · Lane A + Lane B</div>
+        <div class="spacer"></div>
+        <span class="pill hide-sm" title="Business date used for pricing checks such as 'job date in the future'">${FG.meta.business_date_fixed ? "Business date" : "Today"} · ${dd(FG.meta.business_date)}</span>
+        <span class="pill hide-sm">${esc(FG.user.display_name)} · ${esc(FG.user.role.replace("_", " ").toLowerCase())}</span>
+        <button class="btn sm" id="logout">${icon("out", 14)} Sign out</button>
+      </header>
+      <main class="content" id="content" tabindex="-1"></main>
+    </div>
+  </div>
+  <button class="ai-fab idle" id="aiFab" aria-label="${agent ? "Ask about my jobs" : "Open FlowGuard AI assistant"}" title="FlowGuard AI (local)">${icon("ai", 24)}</button><div id="aiPanel"></div>`;
+  $("#logout").onclick = async () => { try { await POST("/api/auth/logout"); } catch (e) { } FG.user = null; renderLogin(); };
+  $("#menu").onclick = () => $(".side").classList.toggle("open");
+  FG.aiOpen = false;
+  $("#aiFab").onclick = () => { $("#aiFab").classList.remove("idle"); toggleAI(); };
+  if (!agent) refreshCounts();
+}
+async function refreshCounts() {
+  try { const r = await GET("/api/reviews", { page_size: 1 }); const c = $("#reviewCount"); if (c) { c.textContent = r.total; c.hidden = !r.total; } } catch (e) { }
+}
+
+/* ---------------------------------------------------------------- login */
+function renderLogin(msg) {
+  document.body.innerHTML = `
+  <div class="login">
+    <section class="login-hero">
+      <div><div class="row" style="gap:10px"><div class="mark" style="background:#fff;color:#0B1F3A">${icon("shield", 18)}</div><b style="font-size:16px;color:#fff">FlowGuard</b></div></div>
+      <div>
+        <h1>Every verified job, priced right or held for a person.</h1>
+        <div class="flow" aria-label="Job-to-Cash flow">
+          <div><i></i>Client sends job · agent completes · GSC admin verifies</div>
+          <div class="k"><i></i>Lane A: contractual price and readiness checks</div>
+          <div class="k"><i></i>Ready, blocked or needs review, never a guess</div>
+          <div class="k"><i></i>Lane B: client invoice and agent invoice</div>
+          <div class="k"><i></i>Reconciliation and Sage-ready export</div>
+        </div>
+        <p class="p">Deterministic rules calculate every pound. A local AI explains, searches and proposes, and has no authority over money.</p>
+      </div>
+      <p class="p">Job-to-Cash financial control: verified work to client invoice, agent pay and reconciliation.</p>
+    </section>
+    <section class="login-form">
+      <div><h1 style="font-size:24px">Sign in</h1><p class="muted">Staff and agents use the same sign-in. You'll see the experience your account allows.</p></div>
+      ${msg ? `<div class="note warn" style="max-width:380px">${esc(msg)}</div>` : ""}
+      <form id="lf" autocomplete="on">
+        <label class="f">Username<input type="text" name="username" autocomplete="username" required></label>
+        <label class="f">Password<input type="password" name="password" autocomplete="current-password" required></label>
+        <div id="lerr" class="note bad" hidden></div>
+        <button class="btn primary" type="submit" style="justify-content:center">Sign in</button>
+      </form>
+    </section>
+  </div>`;
+  $$(".login-hero .flow div").forEach((d, i) => d.style.setProperty("--fi", i));
+  $("#lf").onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target); const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+    try {
+      const r = await POST("/api/auth/login", { username: f.get("username"), password: f.get("password") });
+      FG.user = r.user; FG.csrf = r.csrf_token; history.replaceState(null, "", "#/"); await afterLogin();
+    } catch (err) { $("#lerr").hidden = false; $("#lerr").textContent = err.message; btn.disabled = false; }
+  };
+}
+async function afterLogin() {
+  AI_HIST.length = 0; FG.lastProposal = null;
+  FG.meta = await GET("/api/meta");
+  renderShell(); onRoute();
+}
+
+/* ---------------------------------------------------------------- AI assistant */
+const AI_HIST = [];
+function aiChips() {
+  if (FG.user.role === "AGENT") return ["Why is my latest job under review?", "Show my invoices", "Change my job to Ready"];
+  return ["Which jobs need review?", "Show blocked jobs", "Show the biggest sources of money at risk", "Where is the money?",
+    "Show jobs held because of missing data", "Show invoices"];
+}
+function toggleAI(force) {
+  FG.aiOpen = force ?? !FG.aiOpen;
+  const p = $("#aiPanel");
+  if (!FG.aiOpen) { const panel = $(".ai-panel", p); if (panel && !REDUCED) { panel.style.animation = "slide-in-r .18s var(--ease-in) reverse both"; setTimeout(() => { if (!FG.aiOpen) p.innerHTML = ""; }, 170); } else p.innerHTML = ""; return; }
+  p.innerHTML = `<section class="ai-panel" aria-label="FlowGuard AI assistant">
+    <div class="ai-head">${icon("ai", 18)}<b>FlowGuard AI</b><span class="pill local" id="aiMode">checking…</span><span class="spacer" style="flex:1"></span><button class="btn ghost sm" id="aiClose" aria-label="Close assistant">✕</button></div>
+    <div class="ai-gov"><span>Local AI</span><span>External AI APIs disabled</span><span>Financial authority disabled</span><span>Direct DB access disabled</span></div>
+    <div class="ai-log" id="aiLog" aria-live="polite"></div>
+    <div class="ai-chips">${aiChips().map(c => `<button type="button">${esc(c)}</button>`).join("")}</div>
+    <form class="ai-input" id="aiForm"><input type="text" id="aiIn" placeholder="${FG.user.role === "AGENT" ? "Ask about your jobs or invoices" : "Ask about jobs, invoices, money at risk or configuration"}" aria-label="Message"><button class="btn primary" type="submit">Send</button></form>
+  </section>`;
+  $("#aiClose").onclick = () => toggleAI(false);
+  $$(".ai-chips button").forEach(b => b.onclick = () => aiSend(b.textContent));
+  $("#aiForm").onsubmit = e => { e.preventDefault(); const v = $("#aiIn").value.trim(); if (v) aiSend(v); };
+  if (!AI_HIST.length) AI_HIST.push({ who: "bot", html: FG.user.role === "AGENT" ? "Ask me why a job is under review or how an invoice was made up. I can only see your own jobs." : "I search and explain using FlowGuard's deterministic records. I can draft configuration proposals, but a person must approve them. I can't change money, statuses or controls." });
+  drawAI();
+  GET("/api/ai/status").then(s => { const m = $("#aiMode"); if (m) m.textContent = s.ollama.available ? `Ollama · ${s.ollama.model}` : "Ollama offline · structured mode"; }).catch(() => { });
+  $("#aiIn").focus();
+}
+function drawAI() {
+  const log = $("#aiLog"); if (!log) return;
+  log.innerHTML = AI_HIST.map(m => `<div class="msg ${m.who}${m.cls ? " " + m.cls : ""}">${m.html}</div>`).join("");
+  log.scrollTop = log.scrollHeight;
+}
+async function aiSend(text) {
+  AI_HIST.push({ who: "me", html: esc(text) }); $("#aiIn") && ($("#aiIn").value = ""); drawAI();
+  AI_HIST.push({ who: "bot", cls: "typing", html: "<span></span><span></span><span></span><span class='muted' style='width:auto;height:auto;background:none;animation:none'> Working</span>" }); drawAI();
+  const { path } = parseHash();
+  try {
+    const r = await POST("/api/ai/chat", { message: text, page: { route: path, last_proposal_id: FG.lastProposal || "" } });
+    AI_HIST.pop(); AI_HIST.push({ who: "bot", cls: r.type === "rejected" ? "rejected" : "", html: renderAI(r) });
+    if (r.proposal_id) FG.lastProposal = r.proposal_id;
+  } catch (e) { AI_HIST.pop(); AI_HIST.push({ who: "bot", cls: "rejected", html: esc(e.message) }); }
+  drawAI();
+}
+function renderAI(r) {
+  let h = r.type === "rejected" ? `<b>${esc(r.title || "Action rejected")}</b><br>` : "";
+  h += `<div>${esc(r.text)}</div>`;
+  if (r.type === "jobs" && r.rows?.length) {
+    h += `<table class="t"><tbody>${r.rows.slice(0, 8).map(j => `<tr class="click" onclick="go('#/${FG.user.role === "AGENT" ? "my-jobs" : "jobs"}/${j.id}')"><td>${esc(j.ref)}</td><td>${esc(j.job_type || "–")}</td><td>${st(j.invoiced ? "INVOICED" : j.status)}</td></tr>`).join("")}</tbody></table>`;
+    if (FG.user.role !== "AGENT") h += `<div class="row mt" style="margin-top:6px"><a href="#/jobs?${qs(Object.fromEntries(Object.entries(r.filters || {}).filter(([k]) => k !== "date_label")))}">Open all ${r.total} in Jobs</a></div>`;
+    h += `<details class="meta"><summary>Structured query sent to the backend</summary><code>${esc(JSON.stringify(r.structured_query))}</code></details>`;
+  }
+  if (r.type === "job" && r.job) h += `<div class="row" style="margin-top:6px">${st(r.job.status)} <a href="#/${FG.user.role === "AGENT" ? "my-jobs" : "jobs"}/${r.job.id}">Open ${esc(r.job.ref)}</a></div>`;
+  if (r.type === "invoice") h += `<div class="row" style="margin-top:6px"><span class="tag">${esc(r.reconstruction)}</span><a href="#/invoices/${r.invoice.id}">Open ${esc(r.invoice.number)}</a></div>`;
+  if (r.type === "proposal") {
+    const p = r.proposal, s = p.simulation || {};
+    h += `<div class="note ai" style="margin-top:8px"><b>Proposed configuration</b><dl class="kv" style="margin-top:6px">
+      <dt>Client</dt><dd>${esc(p.payload.client_code)}</dd>${p.payload.job_type ? `<dt>Job type</dt><dd>${esc(p.payload.job_type)}</dd>` : ""}
+      ${p.payload.client_amount ? `<dt>Rate</dt><dd>${gbp(p.payload.client_amount)}</dd>` : ""}<dt>Effective</dt><dd>${dd(p.payload.effective_from)}</dd>
+      ${(p.payload.modifiers || []).map(m => `<dt>${esc(m.condition.toLowerCase())} modifier</dt><dd>+${gbp(m.client_amount)}</dd>`).join("")}
+      ${p.payload.po_required !== null && p.payload.po_required !== undefined ? `<dt>PO</dt><dd>${p.payload.po_required ? "Required" : "Not required"}</dd>` : ""}
+      <dt>Impact</dt><dd>${num(s.affected_jobs)} jobs · ${gbp(s.billing_difference)} · ${num(s.ready_to_blocked)} would become blocked</dd>
+      <dt>Risk</dt><dd>${esc(p.risk)}${p.risk_reasons?.length ? " – " + esc(p.risk_reasons.join(", ")) : ""}</dd></dl>
+      <p style="margin-top:8px"><b>This configuration has NOT been activated.</b></p><a href="#/configuration/${p.id}">Review proposal #${p.id}</a></div>`;
+  }
+  if (r.type === "simulation") h += `<div class="row" style="margin-top:6px"><a href="#/configuration/${r.proposal_id}">Open proposal #${r.proposal_id}</a></div>`;
+  if (r.type === "leaks") h += `<div class="row" style="margin-top:6px"><a href="#/">See the money-at-risk panel</a></div>`;
+  if (r.link) h += `<div class="row" style="margin-top:6px"><a href="${r.link}">Open</a></div>`;
+  const ex = r.mode_explain ? (r.mode_explain === "ollama" ? "wording by local model" : "deterministic template") : "";
+  h += `<div class="meta">Tools: ${esc((r.tools || []).join(", ") || "none")} · ${esc(r.mode === "ollama" ? "Ollama" : "structured parser")}${ex ? " · " + ex : ""} · financial changes: none</div>`;
+  return h;
+}
+
+/* ---------------------------------------------------------------- shared components */
+function kpi(label, value, sub, href, cls = "") {
+  return `<button class="kpi ${cls}" onclick="go('${href}')"><div class="l">${label}</div><div class="v">${value}</div>${sub ? `<div class="s">${sub}</div>` : ""}</button>`;
+}
+function table(cols, rows, { onRow, empty = "Nothing to show", sort, dir } = {}) {
+  if (!rows.length) return `<div class="empty"><b>${esc(empty)}</b></div>`;
+  return `<div class="tbl-wrap"><table class="t"><thead><tr>${cols.map(c => `<th class="${c.num ? "num " : ""}${c.sort ? "sortable" : ""}" ${c.sort ? `data-sort="${c.sort}"` : ""} scope="col">${esc(c.h)}${c.sort && sort === c.sort ? (dir === "asc" ? " ↑" : " ↓") : ""}</th>`).join("")}</tr></thead>
+  <tbody>${rows.map((r, i) => `<tr ${onRow ? `class="click" data-i="${i}" tabindex="0"` : ""}>${cols.map(c => `<td class="${c.num ? "num" : ""} ${c.nowrap ? "nowrap" : ""}">${c.v(r)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function bindRows(el, rows, fn) {
+  $$("tbody tr.click", el).forEach(tr => {
+    const h = () => fn(rows[+tr.dataset.i]);
+    tr.onclick = e => { if (!e.target.closest("a,button")) h(); };
+    tr.onkeydown = e => { if (e.key === "Enter") h(); };
+  });
+}
+function head(title, sub, actions = "") {
+  return `<div class="page-head"><div><h1>${esc(title)}</h1>${sub ? `<div class="sub">${sub}</div>` : ""}</div>${actions ? `<div class="actions">${actions}</div>` : ""}</div>`;
+}
+const charts = [];
+function chart(canvas, cfg) {
+  if (!window.Chart) { canvas.replaceWith(Object.assign(document.createElement("div"), { className: "empty", textContent: "Chart library unavailable; figures are listed alongside." })); return; }
+  const css = getComputedStyle(document.documentElement);
+  Chart.defaults.font.family = css.getPropertyValue("--font"); Chart.defaults.color = css.getPropertyValue("--muted").trim();
+  Chart.defaults.borderColor = css.getPropertyValue("--line").trim();
+  Chart.defaults.animation = REDUCED ? false : { duration: 800, easing: "easeOutQuart" };
+  charts.push(new Chart(canvas, cfg));
+}
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------------------------------------------------------------- boot */
+async function start() {
+  try { const r = await GET("/api/auth/me"); FG.user = r.user; FG.csrf = r.csrf_token; await afterLogin(); }
+  catch (e) { renderLogin(); }
+}
+
+/* Staff pages part 1: dashboard, money map, jobs, job detail + trace, review centre */
+"use strict";
+const jobsLink = f => "#/jobs?" + qs(f);
+
+route("/", async (c) => {
+  if (FG.user.role === "AGENT") return agentHome(c);
+  const d = await GET("/api/dashboard");
+  const k = d.kpis;
+  const statusRows = d.status;
+  const leakMax = Math.max(...d.leakage.map(l => +l.value), 1);
+  c.innerHTML = head("Dashboard", `Where the money is, what is ready, what is held, and where money or trust could leak. ${FG.meta.business_date_fixed ? "Business date" : "As of"} ${dd(FG.meta.business_date)}.`,
+    `<a class="btn" href="#/money-map">Open Money Map</a><a class="btn primary" href="#/invoices">Invoicing</a>`) + `
+  <div class="grid g6">
+    ${kpi("Total verified jobs", num(k.verified_jobs), `${gbp0(k.total_verified_value)} priced value`, "#/jobs?verification=VERIFIED")}
+    ${kpi("Invoice-ready value", gbp0(k.invoice_ready_value), `${num(k.invoice_ready_jobs)} jobs awaiting invoice`, jobsLink({ status: "READY", invoiced: "no" }))}
+    ${kpi("Blocked value", gbp0(k.blocked_value), `${num(k.blocked_jobs)} verified jobs${k.blocked_unpriced ? `, ${k.blocked_unpriced} unpriced` : ""}`, jobsLink({ status: "BLOCKED", verification: "VERIFIED" }))}
+    ${kpi("Needs-review value", gbp0(k.review_value), `${num(k.review_jobs)} jobs, ${num(k.review_unpriced)} unpriced`, "#/reviews")}
+    ${kpi("Straight-through rate", k.straight_through_rate + "%", `${num(k.straight_through_jobs)} of ${num(k.verified_jobs)} with no human touch`, "#/ai")}
+    ${kpi(`Wrong-output count <span class="target">target 0</span>`, num(k.wrong_output_count), `Reconciliation mismatches: ${k.reconciliation_mismatches}`, "#/reconciliation", k.wrong_output_count === 0 ? "zero" : "bad")}
+  </div>
+  <div class="grid g-main mt">
+    <div class="card">
+      <div class="card-head"><h2>Money at risk</h2><span class="muted r">${gbp(k.money_at_risk)} across ${d.leakage.reduce((a, l) => a + l.jobs, 0)} jobs</span></div>
+      <div class="stack" style="gap:8px">${d.leakage.map(l => `
+        <div class="leak" role="button" tabindex="0" data-href="${jobsLink({ bucket: l.bucket })}">
+          <div><b>${esc(l.label)}</b><div class="bar-track" style="margin-top:6px"><div class="bar-fill" style="width:${(100 * +l.value / leakMax).toFixed(1)}%;background:${l.bucket === "verified_not_invoiced" ? "var(--ready)" : "var(--review)"}"></div></div></div>
+          <div class="lj">${num(l.jobs)} jobs${l.unpriced ? `<br>${l.unpriced} unpriced` : ""}</div><div class="lv">${gbp(l.value)}</div>
+        </div>`).join("")}</div>
+      <p class="faint" style="font-size:12px;margin-top:8px">Unpriced jobs have no safe deterministic price yet, so they carry no £ value. FlowGuard does not estimate one.</p>
+    </div>
+    <div class="stack">
+      <div class="card"><h2>Money by status</h2>
+        <div class="bar-list">${statusRows.map(s => { const max = Math.max(...statusRows.map(x => +x.value), 1); return `
+          <div class="bar-item" data-href="${s.status === "INVOICED" ? jobsLink({ invoiced: "yes" }) : jobsLink({ status: s.status, invoiced: "no", verification: "VERIFIED" })}" role="button" tabindex="0">
+            <div>${st(s.status)}</div><div class="bar-track"><div class="bar-fill" style="width:${(100 * +s.value / max).toFixed(1)}%;background:var(--${{ INVOICED: "info", READY: "ready", NEEDS_REVIEW: "review", BLOCKED: "blocked" }[s.status]})"></div></div>
+            <div class="nowrap"><b>${gbp0(s.value)}</b> <span class="muted">· ${num(s.jobs)}</span></div></div>`; }).join("")}</div>
+        <div class="sep"></div>
+        <div class="row muted" style="font-size:12.5px">Held before verification (untouchable): <a href="${jobsLink({ verification: "UNVERIFIED" })}">${d.held_before_verification.UNVERIFIED} unverified</a> · <a href="${jobsLink({ verification: "REJECTED" })}">${d.held_before_verification.REJECTED} rejected</a></div>
+      </div>
+      <div class="card"><h2>Straight-through rate by job week</h2><canvas id="stpChart" height="150" aria-label="Weekly straight-through rate"></canvas></div>
+    </div>
+  </div>
+  <div class="grid g3 mt">
+    <div class="card"><h2>Top recurring exception causes</h2><div class="bar-list">${d.reasons.slice(0, 7).map(r => { const max = d.reasons[0]?.jobs || 1; return `
+      <div class="bar-item" data-href="${jobsLink({ reason: r.code })}" role="button" tabindex="0"><div style="font-size:13px">${esc(r.title)}</div><div class="bar-track"><div class="bar-fill" style="width:${100 * r.jobs / max}%"></div></div><div class="nowrap"><b>${r.jobs}</b></div></div>`; }).join("") || `<div class="empty">No open exceptions</div>`}</div></div>
+    <div class="card"><h2>Top clients by priced value</h2><canvas id="clientChart" height="190" aria-label="Top clients by value"></canvas></div>
+    <div class="card"><h2>Operational health</h2><dl class="kv">
+      <dt>Invoices generated</dt><dd><a href="#/invoices">${num(k.invoices_generated)}</a> (${d.invoices.client} client · ${d.invoices.agent} agent)</dd>
+      <dt>Already invoiced</dt><dd>${gbp(k.invoiced_value)} · ${num(k.invoiced_jobs)} jobs</dd>
+      <dt>Exception rate</dt><dd>${k.exception_rate}% of verified jobs</dd>
+      <dt>Average review time</dt><dd>${k.avg_review_hours ?? "–"} hours</dd>
+      <dt>Reconciliation</dt><dd>${k.reconciliation_mismatches ? `<span class="st BLOCKED">${k.reconciliation_mismatches} mismatches</span>` : `<span class="st READY">Balanced</span>`}</dd>
+      <dt>AI financial authority</dt><dd>Disabled</dd></dl></div>
+  </div>
+  <div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>Jobs needing attention</h2><a class="r" href="#/jobs?status=NEEDS_REVIEW,BLOCKED&verification=VERIFIED">All jobs needing attention</a></div><div id="dashTable"></div></div>`;
+  $$("[data-href]", c).forEach(el => { el.onclick = () => go(el.dataset.href); el.onkeydown = e => e.key === "Enter" && go(el.dataset.href); });
+  chart($("#stpChart"), { type: "line", data: { labels: d.trend.map(t => dd(t.week).slice(0, 6)), datasets: [{ data: d.trend.map(t => t.stp), borderColor: cssv("--brand"), backgroundColor: cssv("--brand-soft"), fill: true, tension: .25, pointRadius: 3 }] },
+    options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: x => `${x.parsed.y}% of ${d.trend[x.dataIndex].jobs} jobs` } } }, scales: { y: { min: 0, max: 100, ticks: { callback: v => v + "%" } } } } });
+  chart($("#clientChart"), { type: "bar", data: { labels: d.top_clients.map(x => x.name), datasets: [{ data: d.top_clients.map(x => +x.value), backgroundColor: cssv("--brand") }] },
+    options: { indexAxis: "y", plugins: { legend: { display: false }, tooltip: { callbacks: { label: x => gbp(x.parsed.x) } } }, onClick: (e, el) => el[0] && go(jobsLink({ client: d.top_clients[el[0].index].client_id })), scales: { x: { ticks: { callback: v => "£" + v / 1000 + "k" } } } } });
+  const t = await GET("/api/jobs", { status: "NEEDS_REVIEW,BLOCKED", verification: "VERIFIED", page_size: 12, sort: "client_net" });
+  $("#dashTable").innerHTML = jobTable(t.rows); bindRows($("#dashTable"), t.rows, r => go("#/jobs/" + r.id));
+});
+
+/* ---------------------------------------------------------------- money map */
+route("/money-map", async (c) => {
+  const m = await GET("/api/money-map");
+  const s = Object.fromEntries(m.stages.map(x => [x.id, x]));
+  const maxV = Math.max(+s.verified.value + +s.lane_b.value, 1);
+  const link = (v) => `<div class="mm-link"><span style="height:${Math.max(3, Math.round(24 * (+v || 0) / maxV))}px"></span></div>`;
+  const node = (x, cls, href, extra = "") => `<button class="mm-node ${cls}" onclick="go('${href}')"><div class="t1">${esc(x.label)}</div><div class="t2">${x.value !== undefined ? gbp0(x.value) : num(x.jobs)}</div><div class="t3">${num(x.jobs ?? x.invoices)} ${x.jobs !== undefined ? "jobs" : "invoices"}${x.unpriced ? ` · ${x.unpriced} unpriced` : ""}</div>${extra}</button>`;
+  const verifiedTotal = +s.ready.value + +s.review.value + +s.blocked.value + +s.lane_b.value;
+  c.innerHTML = head("Live Money Map", "Every stage is counted live from the database. Select any stage to open the jobs behind it. Steps before verification are outside FlowGuard's processing scope and shown for context.") + `
+  <div class="card">
+    <div class="scope-band"><span class="pill">Dashed: operational context</span><span class="pill" style="border-color:var(--brand);color:var(--brand)">Solid: FlowGuard processing</span><span class="pill" style="color:var(--blocked)">Red notes: money or trust at risk</span></div>
+    <div class="mm">
+      <div class="mm-col"><div class="lane-label" style="color:var(--muted)">Before FlowGuard</div>${node(s.received, "context", "#/jobs")}
+        <button class="mm-node context" onclick="go('#/jobs')"><div class="t1">Agent completes job</div><div class="t2">${num(s.completed.jobs)}</div><div class="t3">evidence and report captured</div></button>
+        <button class="mm-node context" onclick="go('#/jobs?verification=UNVERIFIED')"><div class="t1">GSC admin verifies</div><div class="t2">${num(s.verified.jobs)} verified</div>
+        <span class="leakflag">${s.verification.held.unverified} unverified · ${s.verification.held.rejected} rejected (never invoiced)</span></button></div>${link(verifiedTotal)}
+      <div class="mm-col"><div class="lane-label">Lane A</div><button class="mm-node lane" onclick="go('#/jobs?verification=VERIFIED')"><div class="t1">Pricing and readiness</div><div class="t2">${num(s.lane_a.jobs)}</div><div class="t3">verified jobs priced deterministically</div><span class="leakflag">${num(s.lane_a.exceptions)} pending exceptions</span></button></div>${link(+s.ready.value + +s.review.value + +s.blocked.value)}
+      <div class="mm-col">
+        ${node(s.ready, "ready", jobsLink({ status: "READY", invoiced: "no" }), `<span class="leakflag" style="color:var(--ready)">Verified, not yet invoiced</span>`)}
+        ${node(s.review, "review", "#/reviews", `<span class="leakflag">Held for a person</span>`)}
+        ${node(s.blocked, "blocked", jobsLink({ status: "BLOCKED", verification: "VERIFIED" }), `<span class="leakflag">Known rule prevents invoicing</span>`)}
+      </div>${link(s.lane_b.value)}
+      <div class="mm-col"><div class="lane-label">Lane B</div><button class="mm-node lane" onclick="go('#/invoices')"><div class="t1">Two invoices per job</div><div class="t2">${gbp0(s.lane_b.value)}</div><div class="t3">${num(s.lane_b.jobs)} jobs · ${s.lane_b.client_invoices} client + ${s.lane_b.agent_invoices} agent invoices</div><div class="t3">Agent side ${gbp0(s.lane_b.agent_value)}</div></button></div>${link(s.reconciliation.value)}
+      <div class="mm-col"><button class="mm-node ${s.reconciliation.mismatches ? "blocked" : "ready"}" onclick="go('#/reconciliation')"><div class="t1">Reconciliation</div><div class="t2">${s.reconciliation.mismatches ? s.reconciliation.mismatches + " mismatches" : "Balanced"}</div><div class="t3">${gbp0(s.reconciliation.value)} generated</div></button></div>${link(s.export.value)}
+      <div class="mm-col"><button class="mm-node" onclick="go('#/invoices')"><div class="t1">Accounting / Sage export</div><div class="t2">${num(s.export.exported)} / ${num(s.export.invoices)}</div><div class="t3">invoices exported</div>${s.export.not_exported ? `<span class="leakflag">${s.export.not_exported} not yet exported</span>` : ""}</button></div>
+    </div>
+  </div>
+  <div class="grid g2 mt">
+    <div class="card"><h2>Where money or trust is leaking</h2><div class="stack" style="gap:8px">${m.leaks.filter(l => l.jobs).map(l => `
+      <div class="leak" role="button" tabindex="0" onclick="go('${jobsLink({ bucket: l.bucket })}')"><b>${esc(l.label)}</b><div class="lj">${num(l.jobs)} jobs${l.unpriced ? ` · ${l.unpriced} unpriced` : ""}</div><div class="lv">${gbp(l.value)}</div></div>`).join("")}</div></div>
+    <div class="card"><h2>Reading the map</h2><p>A pound moves right only when a deterministic check passes. Anything uncertain stops in <b>Needs review</b> with a reason code; anything a known rule forbids stops in <b>Blocked</b>. Nothing reaches Lane B unless it is <b>Ready</b>.</p>
+      <p class="muted">Connector thickness is proportional to the £ value flowing between stages.</p></div>
+  </div>`;
+});
+
+/* ---------------------------------------------------------------- jobs */
+function jobTable(rows, opt = {}) {
+  return table([
+    { h: "Job", sort: "id", v: r => `<a href="#/jobs/${r.id}"><b>${esc(r.ref)}</b></a><div class="faint" style="font-size:12px">${esc(r.external_job_id)}</div>` },
+    { h: "Client", v: r => esc(r.client || "–") },
+    { h: "Agent", v: r => esc(r.agent || "–") },
+    { h: "Type", sort: "job_type", v: r => esc(r.job_type || "–") + (r.weekend ? ` <span class="tag">wknd</span>` : "") + (r.emergency ? ` <span class="tag">emerg</span>` : "") + (r.revisit ? ` <span class="tag">revisit</span>` : "") },
+    { h: "Date", sort: "job_date", nowrap: 1, v: r => dd(r.job_date) },
+    { h: "Verified", v: r => r.verification_status === "VERIFIED" ? `<span class="muted">Verified</span>` : `<span class="st neutral">${esc(r.verification_status.toLowerCase())}</span>` },
+    { h: "Status", sort: "status", v: r => st(r.status) },
+    { h: "Reason", v: r => r.reasons.map(code).join(" ") || `<span class="faint">–</span>` },
+    { h: "Client £", num: 1, sort: "client_net", v: r => r.client_net ? gbp(r.client_net) : `<span class="faint">${r.value_at_stake ? "≤ " + gbp(r.value_at_stake) : "unpriced"}</span>` },
+    { h: "Agent £", num: 1, v: r => gbp(r.agent_net) },
+    { h: "PO", v: r => esc(r.po_number || "–") },
+    { h: "Invoice", v: r => r.invoiced ? `<span class="st INVOICED">${esc(r.client_invoice)}</span>` : r.invoice_status === "AWAITING" ? `<span class="muted">Awaiting</span>` : `<span class="faint">–</span>` },
+    { h: "Updated", nowrap: 1, v: r => dt(r.updated_at) },
+  ], rows, { onRow: 1, empty: "No jobs match these filters", ...opt });
+}
+route("/jobs", async (c, _, q) => {
+  const f = { page: 1, page_size: 25, sort: "id", dir: "desc", ...q };
+  const m = FG.meta;
+  const sel = (name, label, opts) => `<label class="f">${label}<select name="${name}"><option value="">Any</option>${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(f[name] || "") === String(v) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
+  c.innerHTML = head("Jobs", "Every job in FlowGuard's normalised schema with its single current processing state. Natural-language filtering is available in the AI assistant.") + `
+  <div class="card flush">
+    <form class="filters" id="jf">
+      <label class="f">Search<input type="search" name="q" value="${esc(f.q || "")}" placeholder="Job ID, external ID, PO, postcode"></label>
+      ${sel("client", "Client", m.clients.map(x => [x.id, x.name]))}
+      ${sel("agent", "Agent", m.agents.map(x => [x.id, x.name]))}
+      ${sel("job_type", "Job type", m.job_types.map(x => [x.code, x.code]))}
+      ${sel("status", "Status", [["READY", "Ready"], ["NEEDS_REVIEW", "Needs review"], ["BLOCKED", "Blocked"], ["NEEDS_REVIEW,BLOCKED", "Needs review or blocked"]])}
+      ${sel("verification", "Verification", [["VERIFIED", "Verified"], ["UNVERIFIED", "Unverified"], ["REJECTED", "Rejected"]])}
+      ${sel("reason", "Reason", m.reason_codes.map(r => [r.code, r.title]))}
+      ${sel("invoiced", "Invoiced", [["yes", "Invoiced"], ["no", "Not invoiced"]])}
+      <label class="f">From<input type="date" name="date_from" value="${esc(f.date_from || "")}"></label>
+      <label class="f">To<input type="date" name="date_to" value="${esc(f.date_to || "")}"></label>
+      <button class="btn primary" type="submit">Apply</button><a class="btn ghost" href="#/jobs">Clear</a>
+      ${f.bucket ? `<span class="pill">Money-at-risk bucket: ${esc(f.bucket.replace(/_/g, " "))}</span>` : ""}${f.scenario ? `<span class="pill">Scenario: ${esc(f.scenario)}</span>` : ""}
+    </form>
+    <div id="jt"><div class="empty">Loading…</div></div>
+  </div>`;
+  $("#jf").onsubmit = e => { e.preventDefault(); const o = Object.fromEntries([...new FormData(e.target)].filter(([, v]) => v)); go("#/jobs?" + qs({ ...o, sort: f.sort, dir: f.dir })); };
+  const r = await GET("/api/jobs", f);
+  const pages = Math.max(1, Math.ceil(r.total / r.page_size));
+  $("#jt").innerHTML = jobTable(r.rows, { sort: f.sort, dir: f.dir }) + `<div class="pager"><span>${num(r.total)} jobs</span><span style="flex:1"></span>
+    <button class="btn sm" ${r.page <= 1 ? "disabled" : ""} id="pp">Previous</button><span>Page ${r.page} of ${pages}</span><button class="btn sm" ${r.page >= pages ? "disabled" : ""} id="np">Next</button></div>`;
+  bindRows($("#jt"), r.rows, row => go("#/jobs/" + row.id));
+  $("#pp") && ($("#pp").onclick = () => go("#/jobs?" + qs({ ...f, page: r.page - 1 })));
+  $("#np") && ($("#np").onclick = () => go("#/jobs?" + qs({ ...f, page: r.page + 1 })));
+  $$("th.sortable", c).forEach(th => th.onclick = () => go("#/jobs?" + qs({ ...f, sort: th.dataset.sort, dir: f.sort === th.dataset.sort && f.dir === "desc" ? "asc" : "desc", page: 1 })));
+});
+
+function traceView(trace, holder) {
+  let sel = trace.findIndex(n => n.state === "fail"); if (sel < 0) sel = trace.findIndex(n => n.key === "net"); if (sel < 0) sel = 0;
+  const draw = () => {
+    holder.innerHTML = `<div class="trace"><div class="tl" role="list">${trace.map((n, i) => `
+      <button class="tl-node ${n.state} ${i === sel ? "sel" : ""}" data-i="${i}" role="listitem"><span class="dot"></span><span><span class="lbl">${esc(n.label)}</span><br><span class="val">${esc(n.value)}</span></span><span class="amt">${n.detail?.client_amount ? gbp(n.detail.client_amount) : ""}</span></button>`).join("")}</div>
+      <div class="card" style="background:var(--surface-2)">${nodeDetail(trace[sel])}</div></div>`;
+    $$(".tl-node", holder).forEach(b => b.onclick = () => { sel = +b.dataset.i; draw(); });
+  };
+  draw();
+}
+function nodeDetail(n) {
+  const d = n.detail || {};
+  const rows = Object.entries(d).filter(([, v]) => v !== null && v !== "" && !(Array.isArray(v) && !v.length)).map(([k, v]) => `<dt>${esc(k.replace(/_/g, " "))}</dt><dd>${typeof v === "object" ? `<code>${esc(JSON.stringify(v))}</code>` : /amount|net|gross|margin/.test(k) && !isNaN(+v) ? gbp(v) : esc(v)}</dd>`).join("");
+  const ref = n.ref ? `<p class="muted" style="margin-top:10px">Source record: ${code(n.ref)}${n.ref.startsWith("invoice:") ? ` · <a href="#/invoices/${n.ref.split(":")[1]}">open invoice</a>` : n.ref.startsWith("rcv:") ? ` · <a href="#/rate-cards">open rate card</a>` : ""}</p>` : "";
+  return `<div class="row"><h3 style="margin:0">${esc(n.label)}</h3>${n.state === "fail" ? `<span class="st BLOCKED">Check failed</span>` : n.state === "ok" ? `<span class="st READY">Passed</span>` : ""}</div>
+    <p style="font-size:18px;font-weight:650;margin:6px 0 10px">${esc(n.value)}</p>${rows ? `<dl class="kv">${rows}</dl>` : `<p class="muted">No further detail recorded for this step.</p>`}${ref}`;
+}
+
+route("/jobs/:id", async (c, { id }) => {
+  const j = await GET("/api/jobs/" + id);
+  const d = j.decision || {};
+  c.innerHTML = head(`${j.ref}`, `${esc(j.external_job_id)} · ${esc(j.job_type || "no job type")} · ${dd(j.job_date)} · ${esc(j.client || "")}`,
+    `${j.open_exception ? `<a class="btn primary" href="#/reviews/${j.open_exception}">Review this exception</a>` : ""}<button class="btn" id="explain">${icon("ai", 14)} Explain in plain English</button>`) + `
+  <div class="grid g4">
+    <div class="card"><div class="muted" style="font-size:12.5px">Processing state</div><div style="margin-top:6px">${st(j.invoiced ? "INVOICED" : j.status)} ${j.invoiced ? st(j.status) : ""}</div><div class="faint" style="font-size:12px;margin-top:6px">Engine ${esc(d.engine_version)} · decided ${dt(d.decided_at)}</div></div>
+    <div class="card"><div class="muted" style="font-size:12.5px">Client amount <button class="why" data-why="net">WHY?</button></div><div style="font-size:22px;font-weight:650">${gbp(j.client_net)}</div><div class="faint" style="font-size:12px">${j.client_net ? "net, before VAT" : j.value_at_stake ? "up to " + gbp(j.value_at_stake) + " at stake" : "no safe price"}</div></div>
+    <div class="card"><div class="muted" style="font-size:12.5px">Agent amount <button class="why" data-why="base_rule">TRACE</button></div><div style="font-size:22px;font-weight:650">${gbp(j.agent_net)}</div><div class="faint" style="font-size:12px">${esc(j.agent || "")}</div></div>
+    <div class="card"><div class="muted" style="font-size:12.5px">Invoices</div><div style="margin-top:6px">${j.client_invoice ? `<a href="#/invoices?q=${esc(j.client_invoice)}">${esc(j.client_invoice)}</a> · <a href="#/invoices?q=${esc(j.agent_invoice)}">${esc(j.agent_invoice)}</a>` : `<span class="muted">${j.status === "READY" ? "Awaiting next invoice batch" : "Not eligible until READY"}</span>`}</div></div>
+  </div>
+  ${d.reasons?.length ? `<div class="card mt"><h2>Why this job is ${esc(STATUS_LABEL[j.status].toLowerCase())}</h2>${d.reasons.map(r => `
+    <div class="reason"><div class="row">${code(r.code)}<b>${esc(r.title)}</b><span class="tag">${esc(r.outcome.replace("_", " ").toLowerCase())}</span><span class="tag">Team: ${esc(r.team)}</span>${r.rules?.length ? `<span class="muted">Rules ${r.rules.map(code).join(" ")}</span>` : ""}</div>
+    <p style="margin:8px 0 4px">${esc(r.message)}</p>${Object.keys(r.evidence || {}).length ? `<details><summary class="muted" style="font-size:12.5px">Evidence</summary><code>${esc(JSON.stringify(r.evidence))}</code></details>` : ""}</div>`).join("")}
+    <div id="aiExplain"></div></div>` : `<div id="aiExplain"></div>`}
+  ${jobFactorsCard(j)}
+  <div class="card mt"><div class="card-head"><h2>Financial trace</h2><span class="muted r">Deterministic lineage. Select a step to inspect it. No AI involved.</span></div><div id="trace"></div></div>
+  <div class="grid g2 mt">
+    <div class="card"><h2>Job record</h2><dl class="kv">
+      <dt>External ID</dt><dd>${esc(j.external_job_id)}</dd><dt>Source</dt><dd>${esc(j.source_system)} · ${esc(j.source_record_id || "–")}</dd>
+      <dt>Verification</dt><dd>${esc(j.verification_status)} ${j.verified_by ? "by " + esc(j.verified_by) : ""} ${j.verification_timestamp ? dt(j.verification_timestamp) : ""}</dd>
+      <dt>Conditions</dt><dd>${[j.weekend && "weekend", j.emergency && "emergency", j.revisit && "revisit"].filter(Boolean).join(", ") || "none"}</dd>
+      <dt>Occupancy</dt><dd>${esc(j.occupancy_status || "–")}</dd><dt>PO</dt><dd>${esc(j.po_number || "–")}</dd><dt>Postcode</dt><dd>${esc(j.postcode || "–")}</dd>
+      ${j.scenario ? `<dt>Tags</dt><dd><span class="tag">${esc(j.scenario)}</span></dd>` : ""}
+      ${j.notes ? `<dt>Notes</dt><dd><div class="note warn" style="font-size:12.5px"><b>Untrusted text from the source system.</b> It is displayed, never executed, and cannot affect pricing or status.<br><span style="white-space:pre-wrap">${esc(j.notes)}</span></div></dd>` : ""}</dl></div>
+    <div class="card"><h2>History</h2>
+      <h3>Decisions</h3>${table([{ h: "When", v: h => dt(h.decided_at) }, { h: "Status", v: h => st(h.status) }, { h: "Client £", num: 1, v: h => gbp(h.client_net) }, { h: "Codes", v: h => h.codes.map(code).join(" ") }, { h: "", v: h => h.current ? `<span class="tag">current</span>` : "" }], j.decision_history)}
+      <h3 class="mt">Reviews</h3>${table([{ h: "When", v: r => dt(r.at) }, { h: "Reviewer", v: r => esc(r.reviewer) }, { h: "Action", v: r => code(r.action) }, { h: "Reason", v: r => esc(r.reason) }, { h: "Result", v: r => st(r.new) }], j.reviews, { empty: "No human review" })}
+      <h3 class="mt">Audit</h3>${table([{ h: "When", v: a => dt(a.ts) }, { h: "Who", v: a => esc(a.actor) }, { h: "Action", v: a => code(a.action) }, { h: "Change", v: a => esc(a.old) + (a.new ? " → " + esc(a.new) : "") }], j.audit, { empty: "No job-level audit events" })}</div>
+  </div>`;
+  traceView(j.trace || [], $("#trace"));
+  $("#editFactors") && ($("#editFactors").onclick = () => jobFactorModal(j));
+  $$(".why", c).forEach(b => b.onclick = () => { const i = (j.trace || []).findIndex(n => n.key === b.dataset.why); $("#trace").scrollIntoView({ behavior: "smooth" }); if (i >= 0) $$(".tl-node", c)[i]?.click(); });
+  $("#explain").onclick = async () => {
+    $("#aiExplain").innerHTML = `<div class="note ai mt">Asking the assistant…</div>`;
+    try { const r = await POST(`/api/jobs/${id}/explain`); $("#aiExplain").innerHTML = `<div class="note ai mt"><b>${icon("ai", 14)} Plain-English explanation</b><p style="margin-top:6px">${esc(r.text)}</p><div class="faint" style="font-size:12px">${esc(r.note || "")} Source: ${esc(r.mode_explain === "ollama" ? "local model rewording the deterministic facts" : "deterministic template (Ollama unavailable)")}. Financial changes: none.</div></div>`; }
+    catch (e) { $("#aiExplain").innerHTML = errBox(e); }
+  };
+});
+
+/* ---------------------------------------------------------------- review centre */
+route("/reviews", async (c, _, q) => {
+  const r = await GET("/api/reviews", q);
+  const tab = (p, l) => `<a class="btn sm ${q.priority === p || (!q.priority && !p) ? "primary" : ""}" href="#/reviews${p ? "?priority=" + p : ""}">${l}</a>`;
+  c.innerHTML = head("Review Centre", "Only items that need a human financial decision. Ordinary system notices live in Notifications. Reviewers supply structured evidence; the deterministic engine still decides the outcome.") + `
+  <div class="grid g4">${kpi("Open exceptions", num(r.total), "awaiting a person", "#/reviews")}${kpi("Critical", num(r.counts.CRITICAL), "VAT and rule conflicts first", "#/reviews?priority=CRITICAL", r.counts.CRITICAL ? "bad" : "")}${kpi("High", num(r.counts.HIGH), "", "#/reviews?priority=HIGH")}${kpi("Value at stake", gbp0(r.value), "priced exceptions only", "#/reviews")}</div>
+  <div class="card flush mt"><div class="filters">${tab("", "All")}${tab("CRITICAL", "Critical")}${tab("HIGH", "High")}${tab("NORMAL", "Normal")}<span style="flex:1"></span><a class="btn sm ghost" href="#/reviews?include_unverified=yes">Include unverified / rejected holds</a></div>
+  <div id="rt"></div></div>`;
+  const rows = r.rows;
+  $("#rt").innerHTML = table([
+    { h: "Priority", v: x => `<span class="prio ${x.priority}">${x.priority.toLowerCase()}</span>` },
+    { h: "Job", v: x => `<b>${esc(x.job_ref)}</b><div class="faint" style="font-size:12px">${esc(x.external_job_id)}</div>` },
+    { h: "Reason", v: x => `${code(x.reason_code)}<div style="font-size:12.5px;margin-top:2px">${esc(x.title)}</div>` },
+    { h: "Explanation", v: x => `<span style="font-size:12.5px">${esc(x.message)}</span>` },
+    { h: "£ at stake", num: 1, v: x => x.value_at_stake ? gbp(x.value_at_stake) : `<span class="faint">unpriced</span>` },
+    { h: "Client", v: x => esc(x.client || "") },
+    { h: "Suggested reviewer", v: x => esc(x.team) + (x.referred_to ? `<div class="faint" style="font-size:12px">referred</div>` : "") },
+    { h: "Opened", nowrap: 1, v: x => dt(x.created_at) },
+    { h: "", v: x => `<a class="btn sm" href="#/reviews/${x.id}">Review</a>` }], rows, { onRow: 1, empty: "Nothing needs review" });
+  bindRows($("#rt"), rows, x => go("#/reviews/" + x.id));
+});
+
+const ACTION_LABEL = { SELECT_RULE: "Select the applicable rule", APPLY_PRECEDENCE: "Apply contract precedence", NOT_DUPLICATE: "Not a duplicate", CONFIRM_DUPLICATE: "Confirm duplicate (block)", ADD_PO: "Add purchase order", REFER: "Refer to team", ACKNOWLEDGE: "Acknowledge (immutable control)" };
+route("/reviews/:id", async (c, { id }) => {
+  const x = await GET("/api/reviews/" + id);
+  const j = x.job;
+  const reason = j.decision.reasons.find(r => r.code === x.reason_code) || {};
+  const canDecide = ["REVIEWER", "FINANCE_ADMIN"].includes(FG.user.role);
+  const params = a => {
+    if (a === "SELECT_RULE") return `<label class="f">Rule<select name="rule_code">${reason.rules.map(r => `<option>${esc(r)}</option>`).join("")}</select></label>
+      <div class="muted" style="font-size:12.5px">Candidates: ${(reason.evidence.candidates || []).map(code).join(" ")}. See the trace below for each amount.</div>`;
+    if (a === "APPLY_PRECEDENCE") { const cs = reason.evidence.conditions || []; return `<label class="f">Which uplift applies?<select name="rule">${[cs.join(">"), [...cs].reverse().join(">")].map(r => `<option value="${esc(r)}">${esc(r.replace(">", " supersedes "))}</option>`).join("")}</select></label>`; }
+    if (a === "ADD_PO") return `<label class="f">PO number<input type="text" name="po_number" placeholder="e.g. PO-B12345" required></label>`;
+    if (a === "REFER") return `<label class="f">Refer to<select name="team"><option>${esc(x.team)}</option><option>Finance</option><option>Commercial</option><option>Operations</option></select></label>`;
+    return "";
+  };
+  c.innerHTML = head(`Review ${j.ref}`, `${esc(x.title)} · opened ${dt(x.created_at)} · suggested reviewer: ${esc(x.team)}`, `<a class="btn" href="#/jobs/${j.id}">Open job</a>`) + `
+  <div class="grid g-main">
+    <div class="stack">
+      <div class="card"><div class="row"><span class="prio ${x.priority}">${x.priority.toLowerCase()}</span>${st(x.status)}${code(x.reason_code)}<span class="muted">£ at stake: <b>${x.value_at_stake ? gbp(x.value_at_stake) : "unpriced"}</b></span></div>
+        <p style="font-size:15px;margin:12px 0 8px">${esc(x.message)}</p>
+        ${x.all_codes.length > 1 ? `<p class="muted">Other open reasons on this job: ${x.all_codes.filter(c => c !== x.reason_code).map(code).join(" ")}</p>` : ""}
+        <h3 class="mt">Evidence</h3><dl class="kv">${Object.entries(reason.evidence || {}).map(([k, v]) => `<dt>${esc(k.replace(/_/g, " "))}</dt><dd>${esc(Array.isArray(v) ? v.join(", ") : v)}</dd>`).join("") || "<dt>–</dt><dd>See trace</dd>"}
+          <dt>Relevant rules</dt><dd>${(reason.rules || []).map(code).join(" ") || "–"}</dd><dt>Client</dt><dd>${esc(j.client)}</dd><dt>Agent</dt><dd>${esc(j.agent)}</dd>
+          <dt>Job</dt><dd>${esc(j.job_type)} on ${dd(j.job_date)} ${[j.weekend && "weekend", j.emergency && "emergency", j.revisit && "revisit"].filter(Boolean).map(t => `<span class="tag">${t}</span>`).join(" ")}</dd></dl>
+        ${x.fix_hint ? `<div class="note mt">${esc(x.fix_hint)}</div>` : ""}
+        <div id="aiE" class="mt"></div><button class="btn sm mt" id="ex">${icon("ai", 14)} Explain with AI</button>
+      </div>
+      <div class="card"><h2>Trace</h2><div id="trace"></div></div>
+    </div>
+    <div class="card" style="align-self:start"><h2>Decision</h2>
+      ${canDecide ? `<p class="muted">Every decision needs a reason and is written to the audit trail. You cannot set a job to Ready directly: FlowGuard re-prices the job using your input.</p>
+      <form id="df" class="stack"><label class="f">Action<select name="action" id="act">${x.actions.map(a => `<option value="${a}">${esc(ACTION_LABEL[a] || a)}</option>`).join("")}</select></label>
+        <div id="params" class="stack"></div>
+        <label class="f">Reason (required)<textarea name="reason" rows="3" required minlength="5" placeholder="e.g. Contract schedule 6.2 states the emergency rate replaces the weekend uplift"></textarea></label>
+        <label class="f">Evidence reference<input type="text" name="evidence_ref" placeholder="Contract clause, email reference"></label>
+        <div id="derr"></div><button class="btn primary" type="submit">Record decision</button></form>`
+      : `<div class="note">Your role (${esc(FG.user.role.toLowerCase())}) can view exceptions but not decide them.</div>`}
+      ${x.history.length ? `<h3 class="mt">Previous decisions</h3>${x.history.map(h => `<div class="reason"><b>${esc(h.reviewer)}</b> · ${code(h.action)} · ${dt(h.at)}<br>${esc(h.reason)}</div>`).join("")}` : ""}
+    </div>
+  </div>`;
+  traceView(j.trace || [], $("#trace"));
+  $("#ex").onclick = async () => { const r = await POST(`/api/jobs/${j.id}/explain`); $("#aiE").innerHTML = `<div class="note ai">${esc(r.text)}<div class="faint" style="font-size:12px;margin-top:4px">${r.mode_explain === "ollama" ? "Reworded by the local model from deterministic facts." : "Deterministic template; Ollama unavailable."} The reason code above is authoritative.</div></div>`; };
+  if (!canDecide) return;
+  const drawP = () => $("#params").innerHTML = params($("#act").value); drawP(); $("#act").onchange = drawP;
+  $("#df").onsubmit = async e => {
+    e.preventDefault(); const f = Object.fromEntries(new FormData(e.target));
+    const { action, reason: why, ...p } = f;
+    try { const r = await POST(`/api/reviews/${id}/decide`, { action, reason: why, params: p });
+      toast(`Decision recorded. Job is now ${STATUS_LABEL[r.new_status] || r.new_status}.`); refreshCounts(); go("#/jobs/" + j.id);
+    } catch (err) { $("#derr").innerHTML = errBox(err); }
+  };
+});
+
+/* ---------------------------------------------------------------- job: price factor values */
+function factorValue(f, v) {
+  if (v === undefined || v === null || v === "") return `<span class="muted">not recorded</span>`;
+  if (f.kind === "BOOLEAN") return v ? "Yes" : "No";
+  return esc(v) + (f.kind === "NUMBER" && f.unit ? " " + esc(f.unit) : "");
+}
+function jobFactorsCard(j) {
+  const fs = FG.meta.price_fields || [];
+  if (!fs.length) return "";
+  const a = j.attributes || {};
+  const can = ["SUPER_ADMIN", "FINANCE_ADMIN", "REVIEWER"].includes(FG.user.role) && !j.invoiced;
+  const isReq = f => f.required_for.includes("*") || f.required_for.includes(j.job_type);
+  return `<div class="card mt"><div class="card-head"><h2>Price factors</h2><span class="muted">Facts about this job that pricing rules can use.</span>
+      ${can ? `<button class="btn sm r" id="editFactors">Edit values</button>` : j.invoiced ? `<span class="tag r">Invoiced: values frozen</span>` : ""}</div>
+    <dl class="kv">${fs.map(f => `<dt>${esc(f.label)}${isReq(f) ? ` <span class="tag">required</span>` : ""}</dt><dd>${factorValue(f, a[f.key])}${isReq(f) && (a[f.key] === undefined || a[f.key] === null) ? ` <span class="st NEEDS_REVIEW">needed to price this job</span>` : ""}</dd>`).join("")}</dl></div>`;
+}
+function jobFactorModal(j) {
+  const fs = FG.meta.price_fields || [], a = j.attributes || {};
+  const input = f => f.kind === "BOOLEAN" ? `<select name="${esc(f.key)}"><option value="">Not recorded</option><option value="yes" ${a[f.key] === true ? "selected" : ""}>Yes</option><option value="no" ${a[f.key] === false ? "selected" : ""}>No</option></select>`
+    : f.kind === "CHOICE" ? `<select name="${esc(f.key)}"><option value="">Not recorded</option>${f.choices.map(x => `<option ${a[f.key] === x ? "selected" : ""}>${esc(x)}</option>`).join("")}</select>`
+    : `<input type="number" name="${esc(f.key)}" min="0" step="any" value="${esc(a[f.key] ?? "")}" placeholder="${esc(f.unit || "")}">`;
+  modal(`<h2>Price factors for ${esc(j.ref)}</h2><p class="muted" style="font-size:13px">Saving re-prices this job with the deterministic engine. Every change is audited.</p>
+    <form id="jf" class="stack">${fs.map(f => `<label class="f">${esc(f.label)}${f.kind === "NUMBER" && f.unit ? ` (${esc(f.unit)})` : ""}${input(f)}</label>`).join("")}
+      <label class="f">Where did these values come from?<textarea name="_reason" rows="2" required placeholder="e.g. Agent's site photos, client work order"></textarea></label>
+      <div id="jerr"></div><div class="row"><button class="btn primary" type="submit">Save and re-price</button><button class="btn" type="button" data-close>Cancel</button></div></form>`, (m, close) => {
+    $("#jf", m).onsubmit = async e => {
+      e.preventDefault();
+      const fd = Object.fromEntries(new FormData(e.target)), reason = fd._reason; delete fd._reason;
+      try {
+        const r = await PUT(`/api/jobs/${j.id}/fields`, { values: fd, reason });
+        close();
+        toast(Object.keys(r.changed).length ? `Saved. Job is now ${STATUS_LABEL[r.status] || r.status}${r.client_net ? " at " + gbp(r.client_net) : ""}.` : "No changes");
+        onRoute();
+      } catch (err) { $("#jerr", m).innerHTML = errBox(err); }
+    };
+  });
+}
+
+/* Staff pages part 2: invoices, reconciliation, commercial config, governance, data */
+"use strict";
+route("/invoices", async (c, _, q) => {
+  const canGen = FG.user.role === "FINANCE_ADMIN";
+  const canExport = ["FINANCE_ADMIN", "AUDITOR"].includes(FG.user.role);
+  const [r, el, b] = await Promise.all([GET("/api/invoices", q), GET("/api/invoices/eligible").catch(() => null), GET("/api/batches")]);
+  c.innerHTML = head("Invoices", "Lane B: one client (sales) invoice line and one agent (purchase or self-billed) line for every READY job. VAT comes from the VAT configuration in force.",
+    `<button class="btn" id="dlList">Download list (CSV)</button>${q.batch_id && FG.user.role !== "AGENT" ? `<button class="btn" id="dlBatch">Download batch PDFs (ZIP)</button>` : ""}${canExport ? `<button class="btn" id="exp">Sage-ready export (CSV)</button>` : ""}`) + `
+  ${el ? `<div class="card mb"><div class="row"><div><h2 style="margin:0">Next invoice batch</h2><div class="muted">${num(el.jobs)} READY jobs · client net ${gbp(el.client_net)} · agent net ${gbp(el.agent_net)} · ${el.clients} clients · ${el.agents} agents</div></div><span style="flex:1"></span>
+    ${canGen ? `<button class="btn primary" id="gen" ${el.jobs ? "" : "disabled"}>Generate ${num(el.jobs)} jobs' invoices</button>` : `<span class="muted">Only Finance Admin can generate invoices</span>`}</div>
+    <p class="faint" style="font-size:12px;margin:8px 0 0">Only jobs whose current decision is READY are included. Blocked, under-review, unverified, rejected and shadow-mode jobs can never be invoiced, and a job can never be invoiced twice (database constraint).</p></div>` : ""}
+  <div class="card flush"><form class="filters" id="if"><label class="f">Search<input type="search" name="q" value="${esc(q.q || "")}" placeholder="Invoice number"></label>
+    <label class="f">Side<select name="kind"><option value="">Both</option><option value="CLIENT" ${q.kind === "CLIENT" ? "selected" : ""}>Client (sales)</option><option value="AGENT" ${q.kind === "AGENT" ? "selected" : ""}>Agent (purchase)</option></select></label>
+    <label class="f">Batch<select name="batch_id"><option value="">Any</option>${b.rows.map(x => `<option value="${x.id}" ${String(q.batch_id) === String(x.id) ? "selected" : ""}>${esc(x.reference)}</option>`).join("")}</select></label>
+    <button class="btn primary">Apply</button><a class="btn ghost" href="#/invoices">Clear</a></form><div id="it"></div></div>`;
+  $("#if").onsubmit = e => { e.preventDefault(); go("#/invoices?" + qs(Object.fromEntries(new FormData(e.target)))); };
+  $("#it").innerHTML = table([
+    { h: "Invoice", v: x => `<b>${esc(x.number)}</b>` }, { h: "Side", v: x => x.kind === "CLIENT" ? "Client sales" : x.self_billed ? "Agent self-billed" : "Agent purchase" },
+    { h: "Party", v: x => esc(x.party || "") }, { h: "Issued", nowrap: 1, v: x => dd(x.issue_date) }, { h: "Lines", num: 1, v: x => x.lines },
+    { h: "Net", num: 1, v: x => gbp(x.net) }, { h: "VAT", num: 1, v: x => gbp(x.vat) }, { h: "Gross", num: 1, v: x => `<b>${gbp(x.gross)}</b>` },
+    { h: "Export", v: x => x.exported ? `<span class="muted">Exported</span>` : `<span class="tag">Not exported</span>` },
+    { h: "", v: x => `<button class="btn sm" data-pdf="${x.id}" data-n="${esc(x.number)}" title="Download PDF">PDF</button>` }], r.rows, { onRow: 1, empty: "No invoices yet" });
+  $$("[data-pdf]", c).forEach(b => b.onclick = e => { e.stopPropagation(); downloadFile(`/api/invoices/${b.dataset.pdf}/pdf`, b.dataset.n + ".pdf", b); });
+  $("#dlList").onclick = e => downloadFile("/api/invoice-list.csv?" + qs(q), "flowguard_invoices.csv", e.currentTarget);
+  $("#dlBatch") && ($("#dlBatch").onclick = e => downloadFile(`/api/batches/${q.batch_id}/pdfs`, "invoices.zip", e.currentTarget));
+  bindRows($("#it"), r.rows, x => go("#/invoices/" + x.id));
+  $("#gen") && ($("#gen").onclick = async () => {
+    $("#gen").disabled = true;
+    $("#gen").disabled = false; payRunModal(el);
+  });
+  $("#exp") && ($("#exp").onclick = async () => { const f = await api("GET", "/api/exports/sage", { query: q.batch_id ? { batch_id: q.batch_id } : {} }); download(f.text, f.filename || "flowguard_sage_export.csv"); toast("Sage-ready export downloaded"); });
+});
+
+route("/invoices/:id", async (c, { id }) => {
+  const inv = await GET("/api/invoices/" + id);
+  const agentPortal = FG.user.role === "AGENT";
+  c.innerHTML = head(`${inv.number}`, `${inv.kind === "CLIENT" ? "Client sales invoice" : inv.self_billed ? "Self-billed agent invoice" : "Agent purchase record"} · issued ${dd(inv.issue_date)}`,
+    `<button class="btn primary" id="dlPdf">Download PDF</button><button class="btn" id="rec">Reproduce this invoice</button>`) + `
+  <div class="grid g-main">
+    <div class="card"><div class="row" style="align-items:flex-start"><div><div class="muted" style="font-size:12.5px">${inv.kind === "CLIENT" ? "From" : inv.self_billed ? "Issued by GSC on behalf of" : "Supplier"}</div>
+      <b>${esc(inv.kind === "CLIENT" ? inv.issuer.name : inv.party_detail?.name)}</b><div class="muted">${esc(inv.kind === "CLIENT" ? inv.issuer.vat_number : inv.party_detail?.vat_number ? "VAT " + inv.party_detail.vat_number : "Not VAT registered")}</div></div>
+      <span style="flex:1"></span><div style="text-align:right"><div class="muted" style="font-size:12.5px">${inv.kind === "CLIENT" ? "Bill to" : "Customer"}</div><b>${esc(inv.kind === "CLIENT" ? inv.party_detail?.name : inv.issuer.name)}</b>
+      <div class="muted">${esc(inv.kind === "CLIENT" ? inv.party_detail?.billing_email || "" : "")}</div></div></div>
+      ${inv.self_billed ? `<div class="note mt"><b>SELF-BILLING</b>${+inv.vat > 0 ? ` · The VAT shown is your output tax due to HMRC.` : ""}<br>${inv.self_billing_ref ? `Self-billing agreement ${code(inv.self_billing_ref)}. The supplier has agreed GSC raises this invoice on their behalf.` : "Supplier not VAT registered: GSC issues this statement on their behalf."}</div>` : ""}
+      ${inv.po_refs?.length ? `<p class="muted mt">PO references: ${inv.po_refs.map(code).join(" ")}</p>` : ""}
+      <div class="mt">${table([{ h: "Job", v: l => agentPortal ? esc(l.job_ref) : `<a href="#/jobs/${l.job_id}">${esc(l.job_ref)}</a>` }, { h: "Description", v: l => esc(l.description) }, { h: "PO", v: l => esc(l.po_number || "–") }, { h: "Net", num: 1, v: l => gbp(l.net) }], inv.lines)}</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px"><dl class="kv" style="min-width:240px"><dt>Net</dt><dd style="text-align:right">${gbp(inv.net)}</dd><dt>VAT ${(inv.vat_rate * 100).toFixed(0)}%</dt><dd style="text-align:right">${gbp(inv.vat)}</dd><dt><b>Total</b></dt><dd style="text-align:right"><b>${gbp(inv.gross)}</b></dd></dl></div>
+      <p class="faint" style="font-size:12px">VAT treatment: ${esc(inv.vat_treatment)}. VAT is calculated once on the invoice net by deterministic code; no AI involvement.</p></div>
+    <div class="stack">
+      ${inv.config_snapshot ? `<div class="card"><h2>Configuration used</h2><dl class="kv"><dt>Rate card versions</dt><dd>${inv.config_snapshot.rate_card_versions.map(v => code("rcv:" + v)).join(" ")}</dd><dt>Contracts</dt><dd>${inv.config_snapshot.contracts.map(v => code("contract:" + v)).join(" ")}</dd><dt>VAT config</dt><dd>v${inv.config_snapshot.vat_config.version} (${inv.config_snapshot.vat_config.rate})</dd><dt>Engine</dt><dd>${inv.config_snapshot.engine_versions.join(", ")}</dd>
+        <dt>Other side</dt><dd>${(inv.counterpart_invoices || []).map(n => `<a href="#/invoices?q=${esc(n)}">${esc(n)}</a>`).join(", ")}</dd></dl></div>` : ""}
+      <div class="card" id="recOut"><h2>Historical reconstruction</h2><p class="muted">Re-runs the deterministic engine with the exact contract, rate-card, rule and VAT versions recorded on this invoice, even if today's configuration is different.</p></div>
+    </div>
+  </div>`;
+  $("#dlPdf").onclick = e => downloadFile(`/api/invoices/${id}/pdf`, inv.number + ".pdf", e.currentTarget);
+  $("#rec").onclick = async () => {
+    $("#recOut").innerHTML = `<h2>Historical reconstruction</h2><div class="muted">Re-running…</div>`;
+    const r = await GET(`/api/invoices/${id}/reconstruct`);
+    const ok = r.result === "REPRODUCED SUCCESSFULLY";
+    $("#recOut").innerHTML = `<h2>Historical reconstruction</h2><div class="note ${ok ? "good" : "bad"}"><b>${esc(r.result)}</b><br>Recorded ${gbp(r.recorded.gross)} · reproduced ${gbp(r.reproduced.gross)}</div>
+      ${table([{ h: "Job", v: l => esc(l.ref) }, ...(agentPortal ? [] : [{ h: "Versions", v: l => `${esc(l.contract)} · ${esc(l.rate_card)}${l.rate_card_status_today !== "ACTIVE" ? ` <span class="tag">${esc(l.rate_card_status_today.toLowerCase())} today</span>` : ""}` }, { h: "Rules", v: l => (l.rules || []).map(code).join(" ") }]),
+        { h: "Recorded", num: 1, v: l => gbp(l.recorded) }, { h: "Reproduced", num: 1, v: l => gbp(l.reproduced) }, { h: "", v: l => l.match ? "✓" : "✗" }], r.lines.slice(0, 50))}`;
+  };
+});
+
+route("/reconciliation", async (c) => {
+  const r = await GET("/api/reconciliation");
+  const x = r.current;
+  const canRun = ["FINANCE_ADMIN", "AUDITOR"].includes(FG.user.role);
+  const diff = v => +v === 0 ? `<span class="st READY">0.00</span>` : `<span class="st BLOCKED">${gbp(v)}</span>`;
+  c.innerHTML = head("Reconciliation", "Compares Lane A decisions with Lane B outputs. Any mismatch is shown here, never hidden.", canRun ? `<button class="btn primary" id="run">Run reconciliation</button>` : "") + `
+  <div class="grid g3">
+    <div class="card"><h2>Client side</h2><dl class="kv"><dt>Expected client total</dt><dd>${gbp(x.expected_client_total)}</dd><dt>Generated client total</dt><dd>${gbp(x.generated_client_total)}</dd><dt>Difference</dt><dd>${diff(x.client_difference)}</dd></dl></div>
+    <div class="card"><h2>Agent side</h2><dl class="kv"><dt>Expected agent total</dt><dd>${gbp(x.expected_agent_total)}</dd><dt>Generated agent total</dt><dd>${gbp(x.generated_agent_total)}</dd><dt>Difference</dt><dd>${diff(x.agent_difference)}</dd></dl></div>
+    <div class="card"><h2>Counts</h2><dl class="kv"><dt>Invoiced jobs</dt><dd>${num(x.invoiced_jobs)}</dd><dt>Expected invoice lines</dt><dd>${num(x.expected_invoice_lines)}</dd><dt>Generated invoice lines</dt><dd>${num(x.generated_invoice_lines)}</dd><dt>Difference</dt><dd>${x.line_difference === 0 ? `<span class="st READY">0</span>` : `<span class="st BLOCKED">${x.line_difference}</span>`}</dd><dt>Invoices</dt><dd>${x.client_invoices} client · ${x.agent_invoices} agent</dd></dl></div>
+  </div>
+  <div class="grid g4 mt">${[["Duplicate invoice lines", x.duplicates], ["Missing invoice lines", x.missing], ["Orphan lines", x.orphans], ["Amount mismatches", x.amount_mismatches], ["Header total mismatches", x.header_mismatches], ["Invoiced but not verified/live", x.wrong_outputs]].map(([l, v]) =>
+    `<div class="card"><div class="muted" style="font-size:12.5px">${l}</div><div style="font-size:22px;font-weight:650;color:var(--${v.length ? "blocked" : "ready"})">${v.length}</div>${v.length ? `<code style="font-size:11px">${esc(JSON.stringify(v.slice(0, 3)))}</code>` : ""}</div>`).join("")}
+    <div class="card"><div class="muted" style="font-size:12.5px">READY, awaiting invoice</div><div style="font-size:22px;font-weight:650">${num(x.ready_awaiting_invoice)}</div><div class="muted">${gbp(x.ready_awaiting_value)} (not a mismatch)</div></div>
+    <div class="card"><div class="muted" style="font-size:12.5px">Total mismatches</div><div style="font-size:22px;font-weight:650;color:var(--${x.mismatch_count ? "blocked" : "ready"})">${x.mismatch_count}</div></div></div>
+  <div class="grid g2 mt"><div class="card flush"><div class="card-head" style="padding:14px 16px 0"><h2>Batches</h2></div>${table([{ h: "Batch", v: b => esc(b.reference) }, { h: "Expected jobs", num: 1, v: b => b.expected_jobs }, { h: "Actual", num: 1, v: b => b.actual_jobs }, { h: "Expected client net", num: 1, v: b => gbp(b.expected_client_net) }, { h: "Actual", num: 1, v: b => gbp(b.actual_client_net) }, { h: "", v: b => b.ok ? `<span class="st READY">Matched</span>` : `<span class="st BLOCKED">Mismatch</span>` }], x.batches)}</div>
+  <div class="card flush"><div class="card-head" style="padding:14px 16px 0"><h2>Run history</h2></div>${table([{ h: "Run", v: x => "#" + x.id }, { h: "When", v: x => dt(x.at) }, { h: "By", v: x => esc(x.by) }, { h: "Mismatches", num: 1, v: x => x.mismatches }], r.runs)}</div></div>`;
+  $("#run") && ($("#run").onclick = async () => { const o = await POST("/api/reconciliation/run"); toast(`Reconciliation run #${o.id}: ${o.result.mismatch_count} mismatches`); onRoute(); });
+});
+
+/* ---------------------------------------------------------------- commercial */
+route("/clients", async (c) => {
+  const r = await GET("/api/clients");
+  c.innerHTML = head("Clients", "Clients from your imported data. PO requirements are business configuration and changed through governed proposals.") +
+    `<div class="card flush">${table([{ h: "Code", v: x => code(x.code) }, { h: "Client", v: x => `<b>${esc(x.name)}</b>` }, { h: "Sector", v: x => esc(x.sector) }, { h: "PO required", v: x => x.po_required ? "Yes" : "No" }, { h: "Sage account", v: x => esc(x.sage_account_ref) }, { h: "Billing", v: x => esc(x.billing_email) }, { h: "Jobs", num: 1, v: x => `<a href="#/jobs?client=${x.id}">${num(x.jobs)}</a>` }], r.rows)}</div>`;
+});
+route("/agents", async (c) => {
+  const r = await GET("/api/agents");
+  c.innerHTML = head("Agents / Suppliers", "Supplier type, VAT status and self-billing agreements drive the agent side of Lane B.") +
+    `<div class="card flush">${table([{ h: "Code", v: x => code(x.code) }, { h: "Agent", v: x => `<b>${esc(x.name)}</b><div class="faint" style="font-size:12px">${esc(x.region)}</div>` }, { h: "Type", v: x => x.supplier_type === "SOLE_TRADER" ? "Sole trader" : "Limited company" },
+      { h: "VAT", v: x => x.vat_status === "REGISTERED" ? (x.vat_number ? `Registered · ${esc(x.vat_number)}` : `<span class="st NEEDS_REVIEW">Registered, no number</span>`) : x.vat_status === "NOT_REGISTERED" ? "Not registered" : `<span class="st NEEDS_REVIEW">Unknown</span>` },
+      { h: "Self-billing", v: x => x.self_billing ? (x.agreements.length ? x.agreements.map(a => `${code(a.ref)} <span class="faint">${dd(a.from)} – ${a.to ? dd(a.to) : "open"}</span>`).join("<br>") : `<span class="st NEEDS_REVIEW">No agreement</span>`) : "Supplier invoices" },
+      { h: "Jobs", num: 1, v: x => `<a href="#/jobs?agent=${x.id}">${num(x.jobs)}</a>` }], r.rows)}</div>`;
+});
+route("/contracts", async (c) => {
+  const r = await GET("/api/contracts");
+  c.innerHTML = head("Contracts", "Contract versions in force by date, with payment terms.") +
+    `<div class="card flush">${table([{ h: "Contract", v: x => `<b>${esc(x.code)}</b> v${x.version}` }, { h: "Client", v: x => esc(x.client) }, { h: "From", v: x => dd(x.valid_from) }, { h: "To", v: x => x.valid_to ? dd(x.valid_to) : "open" }, { h: "Status", v: x => esc(x.status) }, { h: "Terms", v: x => `<code style="font-size:11.5px">${esc(JSON.stringify(x.terms))}</code>` }], r.rows)}</div>`;
+});
+route("/rate-cards", async (c) => {
+  const r = await GET("/api/rate-cards");
+  const canPropose = ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role);
+  c.innerHTML = head("Rate Cards", "Versions are never edited once active. A change creates a new version; history stays for reproduction. Retired versions are kept and still reproduce the invoices that used them.", canPropose ? `<a class="btn primary" href="#/configuration/new">Propose a change</a>` : "") +
+    r.rows.map(card => `<div class="card mb"><div class="card-head"><h2>${esc(card.name)}</h2><span class="muted">${esc(card.client)} · ${esc(card.contract_code)}</span>${canPropose ? `<button class="btn sm r" data-rb="${card.id}">Roll back…</button>` : ""}</div>
+      ${card.versions.slice().reverse().map(v => `<details ${v.status === "ACTIVE" ? "open" : ""} style="border-top:1px solid var(--line);padding:8px 0">
+        <summary class="row" style="cursor:pointer"><b>v${v.version}</b><span class="st ${v.status === "ACTIVE" ? "READY" : "neutral"}">${esc(v.status.toLowerCase())}</span><span>${dd(v.valid_from)} – ${v.valid_to ? dd(v.valid_to) : "open"}</span><span class="muted">${esc(v.note)}</span>${v.rollback_of_version ? `<span class="tag">rollback of v${v.rollback_of_version}</span>` : ""}<span class="faint" style="margin-left:auto;font-size:12px">maker ${esc(v.created_by)} · checker ${esc(v.approved_by || "–")}${v.proposal_id ? ` · <a href="#/configuration/${v.proposal_id}">proposal #${v.proposal_id}</a>` : ""}</span></summary>
+        ${v.precedence?.length ? `<p class="muted" style="margin:6px 0">Precedence: ${v.precedence.map(p => code(p)).join(" ")}</p>` : ""}
+        ${table([{ h: "Rule", v: x => code(x.code) }, { h: "Kind", v: x => x.kind.toLowerCase() }, { h: "Job type", v: x => esc(x.job_type) }, { h: "Condition", v: x => esc(x.condition || "–") }, { h: "Group", v: x => esc(x.group || "–") }, { h: "Client £", num: 1, v: x => gbp(x.client_amount) }, { h: "Agent £", num: 1, v: x => gbp(x.agent_amount) }, { h: "Clause", v: x => esc(x.clause_ref) }], v.rules)}</details>`).join("")}</div>`).join("");
+  $$("[data-rb]", c).forEach(b => b.onclick = () => {
+    const card = r.rows.find(x => x.id == b.dataset.rb);
+    modal(`<h2>Roll back ${esc(card.name)}</h2><p class="muted">Rollback never deletes history: it creates a new version that restores an earlier version's behaviour, and needs four-eyes approval.</p>
+      <label class="f">Restore the behaviour of<select id="tv">${card.versions.map(v => `<option value="${v.version}">v${v.version} (${esc(v.status.toLowerCase())})</option>`).join("")}</select></label>
+      <div id="rbErr"></div><div class="row mt"><button class="btn primary" id="rbGo">Create rollback proposal</button><button class="btn" data-close>Cancel</button></div>`, (m, close) => {
+      $("#rbGo", m).onclick = async () => { try { const p = await POST("/api/config/proposals", { kind: "ROLLBACK", payload: { rate_card_id: card.id, target_version: +$("#tv", m).value } }); close(); go("#/configuration/" + p.id); } catch (e) { $("#rbErr", m).innerHTML = errBox(e); } };
+    });
+  });
+});
+
+route("/rules", async (c) => {
+  const r = await GET("/api/rules");
+  c.innerHTML = head("Rules", "System safety controls are code and cannot be configured, disabled or overridden by anyone, including the AI. Business configuration is versioned and governed.") + `
+  <div class="grid g2">
+    <div class="card"><div class="card-head"><h2>Immutable system safety controls</h2><span class="tag r">not configurable</span></div>${table([{ h: "ID", v: x => code(x.id) }, { h: "Control", v: x => `<b>${esc(x.name)}</b>` }, { h: "Enforced in", v: x => `<span class="muted" style="font-size:12px">${esc(x.enforced_in)}</span>` }], r.safety_controls)}</div>
+    <div class="stack">
+      <div class="card"><h2>Active configuration health</h2>${r.config_health.length ? `<div class="note warn">${r.config_health.length} issue(s) in configuration already in force. Jobs hit by these are held for review, never guessed.</div>${table([{ h: "Code", v: x => code(x.code) }, { h: "Detail", v: x => esc(x.detail) }], r.config_health)}` : `<div class="note good">No conflicts in active configuration.</div>`}</div>
+      <div class="card"><h2>VAT configuration</h2>${table([{ h: "Version", v: x => "v" + x.version }, { h: "Standard rate", v: x => (x.rate * 100).toFixed(0) + "%" }, { h: "From", v: x => dd(x.from) }, { h: "Status", v: x => esc(x.status) }], r.vat)}<p class="faint" style="font-size:12px;margin-top:8px">${esc(r.vat[0]?.note)}</p></div>
+      <div class="card"><h2>Four-eyes policy</h2><p>${r.four_eyes_policy === "ALL" ? "Every configuration change needs a second person to approve it." : "High-risk changes need a second person; low-risk changes may be self-approved."} The maker can never be the checker on a high-risk change.</p></div>
+    </div>
+  </div>
+  <div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>Reason codes and explanation templates</h2><span class="muted r">These templates explain every decision without AI.</span></div>
+    ${table([{ h: "Code", v: x => code(x.code) }, { h: "Outcome", v: x => st(x.outcome) }, { h: "Priority", v: x => `<span class="prio ${x.priority}">${x.priority.toLowerCase()}</span>` }, { h: "Routed to", v: x => esc(x.team) }, { h: "Staff template", v: x => `<span style="font-size:12.5px">${esc(x.template)}</span>` }, { h: "Agent wording", v: x => `<span style="font-size:12.5px" class="muted">${esc(x.agent_template)}</span>` }], r.reason_codes)}</div>`;
+});
+
+/* ---------------------------------------------------------------- configuration governance */
+route("/configuration", async (c) => {
+  const [r, pf] = await Promise.all([GET("/api/config/proposals"), GET("/api/fields")]);
+  const can = ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role);
+  c.innerHTML = head("Configuration", "Every change flows: proposal → schema validation → permission check → conflict check → impact simulation → four-eyes approval → new version.", can ? `<a class="btn primary" href="#/configuration/new">New proposal</a>` : "") + `
+  ${factorCard(pf.rows, can)}
+  <div class="card mb"><div class="steps">${["Proposal", "Schema validation", "Permission check", "Rule-conflict check", "Impact simulation", "Human review", "Approval", "New version", "Deterministic engine"].map(s => `<span class="s">${s}</span>`).join("")}</div></div>
+  <div class="card flush">${table([{ h: "#", v: x => x.id }, { h: "Proposal", v: x => `<b>${esc(x.title)}</b>` }, { h: "Source", v: x => x.source === "AI" ? `<span class="tag ai">AI drafted</span>` : "Human" }, { h: "Status", v: x => propStatus(x.status) }, { h: "Risk", v: x => x.risk_level === "HIGH" ? `<span class="prio HIGH">high</span>` : `<span class="prio NORMAL">normal</span>` },
+    { h: "Affected jobs", num: 1, v: x => x.impact.affected_jobs ?? "–" }, { h: "Billing impact", num: 1, v: x => gbp(x.impact.billing_difference) }, { h: "Maker", v: x => esc(x.created_by) }, { h: "Checker", v: x => esc(x.approvals.map(a => a.approver).join(", ") || "–") }, { h: "Created", nowrap: 1, v: x => dt(x.created_at) }], r.rows, { onRow: 1 })}</div>`;
+  bindRows(c, r.rows, x => go("#/configuration/" + x.id));
+  bindFactorCard(c, pf.rows);
+});
+
+/* ---------------------------------------------------------------- price factors (admin-defined fields) */
+const KIND_LABEL = { BOOLEAN: "Yes / no", NUMBER: "Number", CHOICE: "Pick-list" };
+const factorByKey = k => (FG.meta.price_fields || []).find(f => f.key === k);
+function condLabel(cond) {
+  if (!cond || !cond.startsWith("F:")) return esc(cond);
+  const [key, choice] = cond.slice(2).split("=");
+  const f = factorByKey(key);
+  return `<span class="tag">${esc(f ? f.label : key)}${choice ? " = " + esc(choice) : ""}</span>`;
+}
+function ruleSummary(u, f) {
+  const per = f.kind === "NUMBER" ? ` per ${esc(f.unit || "unit")}${u.included_units ? ` over ${u.included_units}` : ""}` : "";
+  return `${code(u.rule)} ${u.choice ? esc(u.choice) + ": " : ""}+${gbp(u.client_amount)} client / +${gbp(u.agent_amount)} agent${per} <span class="faint">· ${esc(u.rate_card)}${u.job_type === "*" ? " · all job types" : " · " + esc(u.job_type)}</span>`;
+}
+function factorCard(rows, can) {
+  const live = rows.filter(f => f.status === "ACTIVE");
+  return `<div class="card flush mb" id="factors"><div class="card-head" style="padding:14px 16px 0"><h2>Price factors</h2>
+      <span class="muted">Anything else that changes a price: parking permit, floors climbed, access type, distance…</span>
+      ${can ? `<button class="btn primary sm r" id="addFactor">+ Add price factor</button>` : ""}</div>
+    <p class="muted" style="padding:6px 16px 0;font-size:12.5px">Adding a factor changes no price. Prices move only when a pricing rule that uses it is proposed, simulated and approved by a second person. Making a factor <b>required</b> holds jobs without a value for review, never a guess.</p>
+    ${rows.length ? table([
+      { h: "Factor", v: f => `<b>${esc(f.label)}</b><div class="faint" style="font-size:12px">${code(f.key)}${f.description ? " · " + esc(f.description) : ""}</div>` },
+      { h: "Type", v: f => esc(KIND_LABEL[f.kind]) + (f.kind === "NUMBER" && f.unit ? ` <span class="faint">(${esc(f.unit)})</span>` : "") + (f.kind === "CHOICE" ? `<div style="margin-top:3px">${f.choices.map(x => `<span class="tag">${esc(x)}</span>`).join(" ")}</div>` : "") },
+      { h: "Required for", v: f => !f.required_for.length ? `<span class="muted">Optional</span>` : f.required_for.includes("*") ? "All job types" : f.required_for.map(code).join(" ") },
+      { h: "Pricing rules in force", v: f => f.rules.length ? f.rules.map(u => `<div style="font-size:12.5px">${ruleSummary(u, f)}</div>`).join("") : `<span class="muted">None yet</span>` },
+      { h: "Status", v: f => f.status === "ACTIVE" ? `<span class="st READY">Active</span>` : `<span class="st neutral">Retired</span>` },
+      { h: "", v: f => can && f.status === "ACTIVE" ? `<div class="row" style="flex-wrap:nowrap"><a class="btn sm primary" href="#/configuration/new?factor=${encodeURIComponent(f.key)}">Add pricing rule</a><button class="btn sm" data-edit="${esc(f.key)}">Edit</button>${f.rules.length ? "" : `<button class="btn sm danger" data-retire="${esc(f.key)}">Retire</button>`}</div>` : "" }],
+      [...live, ...rows.filter(f => f.status !== "ACTIVE")]) :
+      `<div class="empty"><b>No price factors yet</b>${can ? "Add one when something other than job type, weekend, emergency or revisit changes the price." : ""}</div>`}</div>`;
+}
+function bindFactorCard(c, rows) {
+  $("#addFactor", c) && ($("#addFactor", c).onclick = () => factorModal(null));
+  $$("[data-edit]", c).forEach(b => b.onclick = () => factorModal(rows.find(f => f.key === b.dataset.edit)));
+  $$("[data-retire]", c).forEach(b => b.onclick = () => modal(`<h2>Retire ${esc(b.dataset.retire)}?</h2><p class="muted">Jobs keep their recorded values for history. A retired factor can no longer be used in new rules.</p>
+      <label class="f">Reason<textarea id="rr" rows="2" required></textarea></label><div id="rerr"></div><div class="row mt"><button class="btn danger" id="rgo">Retire</button><button class="btn" data-close>Cancel</button></div>`, (m, close) => {
+    $("#rgo", m).onclick = async () => { try { await POST(`/api/fields/${b.dataset.retire}/retire`, { reason: $("#rr", m).value }); close(); FG.meta = await GET("/api/meta"); toast("Price factor retired"); onRoute(); } catch (e) { $("#rerr", m).innerHTML = errBox(e); } };
+  }));
+}
+function factorModal(f) {
+  const req = f ? f.required_for : [];
+  const mode = !req.length ? "none" : req.includes("*") ? "all" : "some";
+  modal(`<h2>${f ? "Edit price factor" : "Add a price factor"}</h2>
+    <p class="muted" style="font-size:13px">A price factor is a fact about a job that can change its price. After saving, add a pricing rule that says how much it changes the price.</p>
+    <form id="ff" class="stack">
+      <label class="f">Name<input type="text" name="label" required maxlength="80" value="${esc(f?.label || "")}" placeholder="e.g. Floors climbed"></label>
+      <label class="f">Type<select name="kind" ${f ? "disabled" : ""}>${Object.entries(KIND_LABEL).map(([k, l]) => `<option value="${k}" ${f?.kind === k ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label class="f" data-for="CHOICE">Options (comma separated)<input type="text" name="choices" value="${esc((f?.choices || []).join(", "))}" placeholder="Standard, Gated estate, High rise"></label>
+      <label class="f" data-for="NUMBER">Unit<input type="text" name="unit" maxlength="24" value="${esc(f?.unit || "")}" placeholder="e.g. floors, miles, hours"></label>
+      <fieldset style="border:1px solid var(--line);border-radius:var(--r);padding:10px 12px"><legend class="muted" style="font-size:12.5px;padding:0 4px">Must every job have a value?</legend>
+        <label class="row" style="gap:6px"><input type="radio" name="req" value="none" ${mode === "none" ? "checked" : ""}> Optional (no value means it does not apply)</label>
+        <label class="row" style="gap:6px"><input type="radio" name="req" value="all" ${mode === "all" ? "checked" : ""}> Required for all job types</label>
+        <label class="row" style="gap:6px"><input type="radio" name="req" value="some" ${mode === "some" ? "checked" : ""}> Required for selected job types</label>
+        <div id="jts" class="row" style="margin:6px 0 0 22px;gap:4px 12px">${FG.meta.job_types.map(t => `<label class="row" style="gap:4px;font-size:12.5px"><input type="checkbox" name="jt" value="${esc(t.code)}" ${req.includes(t.code) ? "checked" : ""}>${esc(t.code)}</label>`).join("")}</div></fieldset>
+      <label class="f">Description (optional)<textarea name="description" rows="2">${esc(f?.description || "")}</textarea></label>
+      <div id="ferr"></div>
+      <div class="row"><button class="btn primary" type="submit">${f ? "Save changes" : "Add price factor"}</button><button class="btn" type="button" data-close>Cancel</button></div>
+    </form>`, (m, close) => {
+    const form = $("#ff", m);
+    const sync = () => {
+      const kind = form.kind.value;
+      $$("[data-for]", m).forEach(x => x.hidden = x.dataset.for !== kind);
+      $("#jts", m).hidden = form.querySelector("[name=req]:checked").value !== "some";
+    };
+    form.onchange = sync; sync();
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const fd = new FormData(form), r = fd.get("req");
+      const data = { label: fd.get("label"), kind: form.kind.value, choices: fd.get("choices") || "", unit: fd.get("unit") || "",
+        description: fd.get("description") || "", required_for: r === "all" ? ["*"] : r === "some" ? fd.getAll("jt") : [] };
+      try {
+        const res = f ? await PUT(`/api/fields/${f.key}`, data) : await POST("/api/fields", data);
+        close(); FG.meta = await GET("/api/meta");
+        const held = res.effect ? res.effect.counts.NEEDS_REVIEW : null;
+        toast(f ? "Price factor saved" : `Added "${res.field.label}". Next: add a pricing rule for it.` + (held !== null ? ` ${num(res.effect.changed)} job decisions changed.` : ""));
+        onRoute();
+      } catch (err) { $("#ferr", m).innerHTML = errBox(err); }
+    };
+  });
+}
+function factorRow(pre = {}) {
+  const fs = FG.meta.price_fields || [];
+  return `<div class="adj grid" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 110px 110px 110px 34px;gap:8px;align-items:end">
+    <label class="f">Price factor<select name="f_key">${fs.map(f => `<option value="${esc(f.key)}" ${pre.factor === f.key ? "selected" : ""}>${esc(f.label)}</option>`).join("")}</select></label>
+    <label class="f f-choice">When it is<select name="f_choice"></select></label>
+    <label class="f"><span class="f-cl">Client +£</span><input type="number" name="f_client" step="0.01" min="0" required></label>
+    <label class="f"><span class="f-ag">Agent +£</span><input type="number" name="f_agent" step="0.01" min="0" value="0"></label>
+    <label class="f f-inc">First N free<input type="number" name="f_inc" step="1" min="0" value="0"></label>
+    <button type="button" class="btn ghost sm f-del" aria-label="Remove adjustment" title="Remove">✕</button></div>`;
+}
+function bindFactorRow(row) {
+  const sync = () => {
+    const f = factorByKey($("[name=f_key]", row).value); if (!f) return;
+    const ch = $("[name=f_choice]", row), wrap = $(".f-choice", row);
+    wrap.style.visibility = f.kind === "CHOICE" ? "visible" : "hidden";
+    if (f.kind === "CHOICE") { const keep = ch.value; ch.innerHTML = f.choices.map(x => `<option ${x === keep ? "selected" : ""}>${esc(x)}</option>`).join(""); }
+    else ch.innerHTML = `<option value="">${f.kind === "BOOLEAN" ? "Yes" : "any value"}</option>`;
+    const u = f.unit || "unit";
+    $(".f-inc", row).style.visibility = f.kind === "NUMBER" ? "visible" : "hidden";
+    $(".f-cl", row).textContent = f.kind === "NUMBER" ? `Client £ per ${u}` : "Client +£";
+    $(".f-ag", row).textContent = f.kind === "NUMBER" ? `Agent £ per ${u}` : "Agent +£";
+  };
+  $("[name=f_key]", row).onchange = sync;
+  $(".f-del", row).onclick = () => leave(row, 0);
+  sync();
+}
+
+const propStatus = s => ({ ACTIVE: `<span class="st READY">Active</span>`, PENDING_APPROVAL: `<span class="st NEEDS_REVIEW">Awaiting approval</span>`, BLOCKED_CONFLICT: `<span class="st BLOCKED">Rule conflict</span>`, REJECTED: `<span class="st neutral">Rejected</span>` }[s] || esc(s));
+
+function simView(s) {
+  return `<div class="grid g4">${[["Affected jobs", num(s.affected_jobs)], ["Billing difference", gbp(s.billing_difference)], ["Status changes", num(s.status_changes)], ["Issued invoices that would differ", num(s.historical_invoices_affected)]].map(([l, v]) => `<div class="card" style="padding:12px"><div class="muted" style="font-size:12.5px">${l}</div><div style="font-size:20px;font-weight:650">${v}</div></div>`).join("")}</div>
+   <dl class="kv mt"><dt>READY → NEEDS REVIEW</dt><dd>${s.ready_to_review}</dd><dt>NEEDS REVIEW → READY</dt><dd>${s.review_to_ready}</dd><dt>READY → BLOCKED</dt><dd>${s.ready_to_blocked ?? 0}</dd><dt>BLOCKED → READY</dt><dd>${s.blocked_to_ready ?? 0}</dd>
+   <dt>Rule conflicts</dt><dd>${s.conflicts.length ? s.conflicts.map(x => `<div class="note bad" style="margin-bottom:4px">${code(x.code)} ${esc(x.detail)}</div>`).join("") : "0"}</dd>
+   <dt>New versions</dt><dd>${(s.new_versions || []).map(v => `${esc(v.rate_card)} v${v.version} (${dd(v.valid_from)} – ${v.valid_to ? dd(v.valid_to) : "open"})`).join("<br>") || "–"}</dd></dl>
+   ${s.historical_invoices_affected ? `<div class="note warn mt">${esc(s.historical_note)} Affected: ${s.historical_invoice_numbers.map(code).join(" ")}</div>` : ""}
+   ${s.examples?.length ? `<h3 class="mt">Example changes</h3>${table([{ h: "Job", v: e => `<a href="#/jobs/${e.job_id}">${esc(e.ref)}</a>` }, { h: "Date", v: e => dd(e.date) }, { h: "Before", v: e => `${st(e.before)} ${gbp(e.before_amount)}` }, { h: "After", v: e => `${st(e.after)} ${gbp(e.after_amount)}` }], s.examples)}` : ""}`;
+}
+
+route("/configuration/new", async (c, _, q) => {
+  FG.meta = await GET("/api/meta");
+  const m = FG.meta;
+  const preFactor = q.factor && factorByKey(q.factor) ? q.factor : null;
+  c.innerHTML = head("New configuration proposal", "Nothing here is activated. You will see the conflict check and impact simulation before anything is submitted for approval.") + `
+  <div class="grid g-main"><form class="card stack" id="pf">
+    <div class="grid g2"><label class="f">Client<select name="client_code">${m.clients.map(x => `<option value="${x.code}">${esc(x.name)}</option>`).join("")}</select></label>
+    <label class="f">Job type<select name="job_type"><option value="*" ${preFactor ? "selected" : ""}>All job types (adjustments only)</option>${m.job_types.map(x => `<option ${!preFactor && x === m.job_types[0] ? "selected" : ""}>${x.code}</option>`).join("")}</select></label>
+    <label class="f">New client rate (£)<input type="number" name="client_amount" step="0.01" min="0" placeholder="leave blank to keep"></label>
+    <label class="f">New agent pay (£)<input type="number" name="agent_amount" step="0.01" min="0" placeholder="leave blank to keep"></label>
+    <label class="f">Effective from<input type="date" name="effective_from" required value="${FG.meta.business_date}"></label>
+    <label class="f">PO requirement<select name="po_required"><option value="">No change</option><option value="true">Required</option><option value="false">Not required</option></select></label>
+    <label class="f">Weekend uplift (£, optional)<input type="number" name="weekend" step="0.01" min="0"></label>
+    <label class="f">Emergency uplift (£, optional)<input type="number" name="emergency" step="0.01" min="0"></label></div>
+    <div class="sep"></div>
+    <div class="row"><h3 style="margin:0">Price factor adjustments</h3><span class="muted" style="font-size:12.5px">Add to the price when a job's factor matches. ${m.price_fields.length ? "" : `No price factors yet: <a href="#/configuration">add one</a>.`}</span>
+      ${m.price_fields.length ? `<button type="button" class="btn sm r" id="addAdj" style="margin-left:auto">+ Add adjustment</button>` : ""}</div>
+    <div id="adjs" class="stack"></div>
+    <label class="row" style="gap:6px"><input type="checkbox" name="close_previous" checked> Close the version currently in force (untick to see conflict detection)</label>
+    <div id="perr"></div>
+    <div class="row"><button type="button" class="btn" id="sim">Run conflict check and simulation</button><button class="btn primary" type="submit">Submit for approval</button></div>
+    <p class="faint" style="font-size:12px">Tip: you can also ask the AI assistant, e.g. "For &lt;client code&gt;, make &lt;job type&gt; £45 from 15 January."</p>
+  </form><div class="card" id="simOut"><h2>Impact simulation</h2><p class="muted">Run the simulation to see affected jobs, billing difference, status changes, historical invoices and conflicts.</p></div></div>`;
+  const addAdj = pre => { const w = document.createElement("div"); w.innerHTML = factorRow(pre); const row = w.firstElementChild; $("#adjs").appendChild(row); bindFactorRow(row); row.style.animation = "rise .3s var(--ease) both"; };
+  $("#addAdj") && ($("#addAdj").onclick = () => addAdj({}));
+  if (preFactor) addAdj({ factor: preFactor });
+  const payload = () => {
+    const f = Object.fromEntries(new FormData($("#pf")));
+    const mods = [["WEEKEND", f.weekend], ["EMERGENCY", f.emergency]].filter(([, v]) => v).map(([cnd, v]) => ({ condition: cnd, client_amount: v }));
+    $$("#adjs .adj").forEach(row => {
+      const fk = $("[name=f_key]", row).value, fd = factorByKey(fk);
+      mods.push({ factor: fk, choice: fd?.kind === "CHOICE" ? $("[name=f_choice]", row).value : null, client_amount: $("[name=f_client]", row).value,
+        agent_amount: $("[name=f_agent]", row).value || "0", included_units: fd?.kind === "NUMBER" ? +$("[name=f_inc]", row).value || 0 : null });
+    });
+    return { client_code: f.client_code, job_type: f.job_type, client_amount: f.client_amount || null, agent_amount: f.agent_amount || null, effective_from: f.effective_from, modifiers: mods, po_required: f.po_required === "" ? null : f.po_required === "true", close_previous: !!f.close_previous };
+  };
+  $("#sim").onclick = async () => { $("#perr").innerHTML = ""; try { const s = await POST("/api/config/simulate", { kind: "RATE_CHANGE", payload: payload() }); $("#simOut").innerHTML = `<h2>Impact simulation</h2>${simView(s)}`; } catch (e) { $("#perr").innerHTML = errBox(e); } };
+  $("#pf").onsubmit = async e => { e.preventDefault(); try { const p = await POST("/api/config/proposals", { kind: "RATE_CHANGE", payload: payload() }); toast("Proposal submitted. It is not active until a second person approves it."); go("#/configuration/" + p.id); } catch (err) { $("#perr").innerHTML = errBox(err); } };
+});
+
+route("/configuration/:id", async (c, { id }) => {
+  const p = await GET("/api/config/proposals/" + id);
+  FG.lastProposal = p.id;
+  const canApprove = ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role) && p.status === "PENDING_APPROVAL";
+  const isMaker = p.created_by === FG.user.username;
+  c.innerHTML = head(`Proposal #${p.id}`, esc(p.title), "") + `
+  <div class="grid g-main">
+    <div class="stack"><div class="card"><div class="row">${propStatus(p.status)}${p.source === "AI" ? `<span class="tag ai">Drafted by AI from a prompt</span>` : ""}<span class="prio ${p.risk_level === "HIGH" ? "HIGH" : "NORMAL"}">${p.risk_level.toLowerCase()} risk</span>${p.risk_reasons.map(r => `<span class="tag">${esc(r)}</span>`).join("")}</div>
+      <h3 class="mt">Proposed configuration</h3><dl class="kv">${Object.entries(p.payload).filter(([, v]) => v !== null && !(Array.isArray(v) && !v.length)).map(([k, v]) => `<dt>${esc(k.replace(/_/g, " "))}</dt><dd>${Array.isArray(v) ? v.map(m => `${condLabel(m.condition)} +${gbp(m.client_amount)}${m.included_units !== null && m.included_units !== undefined ? " per unit" + (m.included_units ? ` over ${m.included_units}` : "") : ""}`).join(", ") : /amount/.test(k) ? gbp(v) : esc(v)}</dd>`).join("")}</dl>
+      ${p.status !== "ACTIVE" ? `<div class="note warn mt"><b>This configuration has NOT been activated.</b></div>` : `<div class="note good mt">Active. New version ${code("rcv:" + p.resulting_rcv_id)} created; jobs re-priced deterministically.</div>`}</div>
+      <div class="card"><h2>Impact simulation</h2>${simView(p.simulation)}</div></div>
+    <div class="card" style="align-self:start"><h2>Four-eyes approval</h2><dl class="kv"><dt>Maker</dt><dd>${esc(p.created_by)}</dd><dt>Checker</dt><dd>${p.approvals.map(a => `${esc(a.approver)} · ${esc(a.decision.toLowerCase())} · ${dt(a.at)}<br><span class="muted">${esc(a.reason)}</span>`).join("<br>") || "–"}</dd></dl>
+      ${p.status === "BLOCKED_CONFLICT" ? `<div class="note bad mt">Activation is blocked until the conflict is resolved. Create a corrected proposal.</div>` : ""}
+      ${canApprove ? (isMaker ? `<div class="note mt">You created this proposal, so a different person must approve it. Sign in as <b>checker</b> to approve.</div><button class="btn danger mt" id="rej">Withdraw (reject)</button>` :
+      `<form id="af" class="stack mt"><label class="f">Reason (required)<textarea name="reason" rows="3" required placeholder="e.g. Matches signed variation letter dated 12 Jan"></textarea></label><div id="aerr"></div><div class="row"><button class="btn primary" name="d" value="APPROVE">Approve and activate</button><button class="btn danger" name="d" value="REJECT">Reject</button></div></form>`) : ""}
+    </div>
+  </div>`;
+  const decide = async (decision, reason) => { try { await POST(`/api/config/proposals/${id}/decide`, { decision, reason }); toast(decision === "APPROVE" ? "Approved. New version active and jobs re-priced." : "Rejected."); onRoute(); } catch (e) { ($("#aerr") || c).insertAdjacentHTML("afterbegin", errBox(e)); } };
+  $("#af") && ($("#af").onsubmit = e => { e.preventDefault(); decide(e.submitter.value, new FormData(e.target).get("reason")); });
+  $("#rej") && ($("#rej").onclick = () => decide("REJECT", "Withdrawn by maker"));
+});
+
+/* ---------------------------------------------------------------- pay-run invoicing */
+function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function payRunModal(el) {
+  const bd = new Date(FG.meta.business_date + "T00:00:00");
+  const cutoff = isoDate(new Date(bd.getFullYear(), bd.getMonth(), 0));
+  modal(`<h2>Generate invoices</h2><p class="muted" style="font-size:13px">One client invoice per client and one agent invoice (self-bill or purchase record) per payee. Only READY jobs are included; the database prevents any job being invoiced twice.</p>
+    <form id="pr" class="stack">
+      <label class="row" style="gap:6px"><input type="checkbox" name="use_cutoff" checked> Pay-run cut-off: only work verified on or before</label>
+      <input type="date" name="verified_by" value="${cutoff}" style="margin-left:22px">
+      <div class="grid g2"><label class="f">Client invoice date<input type="date" name="issue_date" value="${cutoff}" required></label>
+      <label class="f">Agent invoice / pay date<input type="date" name="agent_issue_date" value="${FG.meta.business_date}" required></label></div>
+      <p class="faint" style="font-size:12px;margin:0">${num(el.jobs)} READY jobs in total (${gbp(el.client_net)} client net). Jobs verified after the cut-off stay READY for the next run.</p>
+      <div id="prErr"></div><div class="row"><button class="btn primary" type="submit">Generate</button><button class="btn" type="button" data-close>Cancel</button></div></form>`, (m, close) => {
+    const f = $("#pr", m);
+    f.use_cutoff.onchange = () => { f.verified_by.disabled = !f.use_cutoff.checked; };
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const btn = f.querySelector("[type=submit]"); btn.disabled = true;
+      try {
+        const g = await POST("/api/invoices/generate", { verified_by: f.use_cutoff.checked ? f.verified_by.value : null, issue_date: f.issue_date.value, agent_issue_date: f.agent_issue_date.value });
+        close(); toast(`${g.batch}: ${g.invoices} invoices for ${num(g.expected.ready_jobs)} jobs. Reconciliation mismatches: ${g.reconciliation_mismatches}.`); go("#/invoices?batch_id=" + g.batch_id);
+      } catch (err) { $("#prErr", m).innerHTML = errBox(err); btn.disabled = false; }
+    };
+  });
+}
+
+/* Pages part 3: imports + shadow mode, integrations, audit, AI & automation, notifications, settings, agent portal */
+"use strict";
+route("/imports", async (c, _, q) => {
+  const r = await GET("/api/imports");
+  const can = ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role);
+  c.innerHTML = head("Imports and Shadow Mode", "Uploaded files are untrusted: they are quarantined, mapped, validated and previewed. Nothing invalid is imported silently. Shadow Mode compares FlowGuard's decisions with your existing process and never sends invoices or writes to source systems.") + `
+  <div class="card mb"><div class="steps">${["Upload", "Quarantine", "Column mapping", "Schema validation", "Preview", "Import summary", "Shadow Mode"].map(s => `<span class="s">${s}</span>`).join("")}</div>
+    <p class="muted" style="margin-top:10px">Migration path: historical CSV → validate → read-only live integration → shadow mode → controlled pilot → production.</p></div>
+  ${can ? `<div class="card mb"><h2>Import a GSC data pack (.xlsx or .csv)</h2><p class="muted">The workbook with the <b>Jobs</b>, <b>Agent_Tasks</b>, <b>Agents</b> and <b>Rates_and_Details</b> sheets, or its single-file CSV form (made with <code>tools/workbook_to_csv.py</code>). Safe to import again with a later file: new tasks are added, changed tasks updated, and invoiced tasks are never altered. The first import creates the rate cards; later imports report rate differences instead of changing prices.</p>
+    <div class="row"><input type="file" id="wbFile" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Data pack file"><button class="btn primary" id="wbUp">Import data pack</button></div><div id="wbErr"></div></div>
+  <div class="card mb"><h2>Upload a CSV of jobs</h2><div class="row"><input type="file" id="file" accept=".csv,text/csv" aria-label="CSV file"><button class="btn" id="up">Upload to quarantine</button></div>
+    <p class="faint" style="font-size:12px;margin-top:8px">Limits: ${esc(r.limits.extensions.join(", "))} only, up to ${Math.round(r.limits.max_bytes / 1024)} KB and ${num(r.limits.max_rows)} rows.</p><div id="uerr"></div></div>` : ""}
+  <div class="card flush">${table([{ h: "#", v: b => b.id }, { h: "File", v: b => `<b>${esc(b.filename)}</b>` }, { h: "Status", v: b => `<span class="tag">${esc(b.status.toLowerCase().replace(/_/g, " "))}</span>` }, { h: "Kind", v: b => b.summary.kind === "WORKBOOK" ? "Workbook" : "CSV" }, { h: "Rows / tasks", num: 1, v: b => b.summary.kind === "WORKBOOK" ? `${num(b.summary.tasks_added)} new · ${num(b.summary.tasks_updated)} updated` : num(b.summary.rows) }, { h: "Valid", num: 1, v: b => b.summary.valid ?? "–" }, { h: "Invalid", num: 1, v: b => b.summary.invalid ?? "–" }, { h: "By", v: b => esc(b.uploaded_by) }, { h: "When", v: b => dt(b.created_at) }], r.rows, { onRow: 1, empty: "No imports yet. Import your GSC workbook to start." })}</div>`;
+  bindRows(c, r.rows, b => go("#/imports/" + b.id));
+  if (!can) return;
+  const send = async (filename, content) => { try { const b = await POST("/api/imports", { filename, content }); go("#/imports/" + b.id); } catch (e) { $("#uerr").innerHTML = errBox(e); } };
+  $("#up").onclick = () => { const f = $("#file").files[0]; if (!f) return toast("Choose a CSV file first", true); const rd = new FileReader(); rd.onload = () => send(f.name, rd.result); rd.readAsText(f); };
+  $("#wbUp").onclick = () => {
+    const f = $("#wbFile").files[0]; if (!f) return toast("Choose the data pack (.xlsx or .csv) first", true);
+    const btn = $("#wbUp"); btn.disabled = true; btn.textContent = "Importing…"; $("#wbErr").innerHTML = "";
+    const rd = new FileReader();
+    rd.onload = async () => {
+      try {
+        const s = await POST("/api/imports/workbook", { filename: f.name, content_b64: String(rd.result).split(",")[1] || "" });
+        FG.meta = await GET("/api/meta"); refreshCounts();
+        toast(`Imported ${num(s.tasks_added)} new tasks, updated ${num(s.tasks_updated)}.`); go("#/imports/" + s.batch_id);
+      } catch (e) { $("#wbErr").innerHTML = errBox(e); btn.disabled = false; btn.textContent = "Import data pack"; }
+    };
+    rd.readAsDataURL(f);
+  };
+});
+
+route("/imports/:id", async (c, { id }) => {
+  const [b, meta] = await Promise.all([GET("/api/imports/" + id), GET("/api/imports")]);
+  if (b.summary.kind === "WORKBOOK") return workbookView(c, b);
+  const fields = meta.fields;
+  const s = b.summary, sh = b.shadow_result || {};
+  const can = ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role);
+  const stepOn = { QUARANTINED: 2, VALIDATED: 5, SHADOW_COMPLETE: 6, IMPORTED_LIVE: 6 }[b.status] ?? 1;
+  c.innerHTML = head(`Import #${b.id}: ${b.filename}`, `Status: ${esc(b.status.toLowerCase().replace(/_/g, " "))} · ${num(s.rows)} rows`) + `
+  <div class="card mb"><div class="steps">${["Upload", "Quarantine", "Column mapping", "Schema validation", "Preview", "Import summary", "Shadow Mode"].map((x, i) => `<span class="s ${i < stepOn ? "done" : i === stepOn ? "on" : ""}">${x}</span>`).join("")}</div></div>
+  <div class="grid g2">
+    <div class="card"><div class="card-head"><h2>Column mapping</h2>${b.mapping._template ? `<span class="tag r">template: ${esc(b.mapping._template)}</span>` : ""}</div>
+      <p class="muted">Source field names are mapped to FlowGuard's normalised schema; business logic never sees source names.</p>
+      <form id="mf"><table class="t"><thead><tr><th>FlowGuard field</th><th>Source column</th></tr></thead><tbody>${Object.entries(fields).map(([f, d]) => `<tr><td>${d.label ? `<b>${esc(d.label)}</b> <span class="tag">price factor</span>` : code(f)} ${d.required ? `<span class="tag">required</span>` : ""}</td><td><select name="${f}" ${can ? "" : "disabled"}><option value="">(not mapped)</option>${b.headers.map(h => `<option ${b.mapping[f] === h ? "selected" : ""}>${esc(h)}</option>`).join("")}</select></td></tr>`).join("")}</tbody></table>
+      ${can ? `<div class="row mt"><label class="f" style="flex:1">Save as template (optional)<input type="text" name="_save" placeholder="e.g. GSC legacy export v2"></label><button class="btn primary" type="submit">Validate</button></div>` : ""}<div id="merr"></div></form></div>
+    <div class="stack">
+      <div class="card"><h2>Validation summary</h2>${s.valid !== undefined ? `<div class="grid g4">${[["Valid", s.valid, "ready"], ["Invalid", s.invalid, s.invalid ? "blocked" : "ready"], ["Duplicate IDs", s.duplicate_ids, s.duplicate_ids ? "blocked" : "ready"], ["Missing fields", s.missing_fields, s.missing_fields ? "blocked" : "ready"], ["Unknown clients", s.unknown_clients], ["Unknown agents", s.unknown_agents], ["Invalid dates", s.invalid_dates], ["Already in FlowGuard", s.already_in_flowguard]].map(([l, v, col]) => `<div><div class="muted" style="font-size:12px">${l}</div><div style="font-size:20px;font-weight:650;${col ? `color:var(--${col})` : ""}">${num(v)}</div></div>`).join("")}</div>
+        <div class="row mt"><button class="btn sm" id="errs">Download invalid rows</button>${can ? `<button class="btn primary" id="shadow">Run Shadow Mode on ${num(s.valid)} valid rows</button><button class="btn" id="live" title="Adds valid rows as live jobs; Lane A prices them like any source">Import valid rows as live jobs</button>` : ""}</div>` : `<p class="muted">Map the columns and validate. Invalid rows stay in quarantine with their errors.</p>`}</div>
+      ${sh.compared !== undefined ? `<div class="card"><div class="card-head"><h2>Shadow Mode result</h2><span class="tag r">Invoices sent: ${sh.invoices_sent} · source writes: ${sh.source_writes}</span></div>
+        <div class="grid g3">${[["Jobs compared", num(sh.compared)], ["Matching decisions", num(sh.matching_decisions)], ["Differences", num(sh.differences)], ["Straight-through rate", sh.straight_through_rate + "%"], ["Potential wrong outputs avoided", num(sh.potential_wrong_outputs)], ["Financial difference", gbp(sh.financial_difference)]].map(([l, v]) => `<div><div class="muted" style="font-size:12px">${l}</div><div style="font-size:20px;font-weight:650">${v}</div></div>`).join("")}</div>
+        <p class="muted mt">Legacy billed ${gbp(sh.legacy_total)}; FlowGuard would release ${gbp(sh.flowguard_total)} as READY. "Potential wrong outputs" are jobs the existing process billed that FlowGuard would have held for a deterministic reason.</p>
+        <h3>Exception differences</h3><div class="row">${Object.entries(sh.exception_codes).map(([k, v]) => `${code(k)} <b>${v}</b>`).join(" &nbsp; ")}</div>
+        ${sh.examples?.length ? `<h3 class="mt">Examples</h3>${table([{ h: "Row", v: e => e.row }, { h: "Job", v: e => esc(e.external_id) }, { h: "Legacy", v: e => `${esc(e.legacy)} ${gbp(e.legacy_amount)}` }, { h: "FlowGuard", v: e => `${st(e.flowguard)} ${gbp(e.flowguard_amount)}` }, { h: "Codes", v: e => e.codes.map(code).join(" ") }], sh.examples)}` : ""}</div>` : ""}
+    </div>
+  </div>
+  <div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>Preview (first ${b.preview.length} rows)</h2></div>${table([{ h: "Row", v: r => r.row }, { h: "Status", v: r => r.status === "VALID" ? `<span class="st READY">Valid</span>` : r.status === "INVALID" ? `<span class="st BLOCKED">Invalid</span>` : `<span class="st neutral">Pending</span>` }, { h: "Errors", v: r => esc(r.errors.join("; ")) }, ...b.headers.slice(0, 7).map(h => ({ h, v: r => esc(r.raw[h]) })), { h: "Shadow", v: r => r.shadow ? st(r.shadow.status) : "" }], b.preview)}</div>`;
+  if (can) $("#mf").onsubmit = async e => { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); const save = f._save; delete f._save; try { await POST(`/api/imports/${id}/map`, { mapping: f, save_as: save || null }); onRoute(); } catch (err) { $("#merr").innerHTML = errBox(err); } };
+  $("#errs") && ($("#errs").onclick = async () => { const f = await api("GET", `/api/imports/${id}/errors.csv`); download(f.text, f.filename); });
+  $("#shadow") && ($("#shadow").onclick = async () => { $("#shadow").disabled = true; $("#shadow").textContent = "Running…"; await POST(`/api/imports/${id}/shadow`); onRoute(); });
+  $("#live") && ($("#live").onclick = async () => { if (!confirm("Import valid rows as live jobs? They will be priced by Lane A and can then be invoiced if READY.")) return; const r = await POST(`/api/imports/${id}/live`); toast(`${r.imported} jobs imported: ${r.counts.READY} ready, ${r.counts.NEEDS_REVIEW} review, ${r.counts.BLOCKED} blocked`); onRoute(); });
+});
+
+route("/integrations", async (c) => {
+  const r = await GET("/api/integrations");
+  c.innerHTML = head("Integrations", "Adapters feed a normalised internal job schema so business logic never depends on one source. Workbook and CSV upload are working; the rest are integration-ready interfaces.") + `
+  <div class="grid g2"><div class="card flush">${table([{ h: "Source", v: x => `<b>${esc(x.name)}</b><div class="faint" style="font-size:12px">${esc(x.description)}</div>` }, { h: "Kind", v: x => code(x.kind) }, { h: "Status", v: x => x.status.startsWith("WORKING") ? `<span class="st READY">${esc(x.status.toLowerCase())}</span>` : `<span class="st neutral">${esc(x.status.toLowerCase().replace(/_/g, " "))}</span>` }, { h: "Access", v: x => esc(x.access_mode.toLowerCase().replace("_", " ")) }, { h: "Last sync", v: x => dt(x.last_sync_at) }], r.rows)}</div>
+  <div class="card"><h2>Connection principles</h2><ul>${r.principles.map(p => `<li style="margin-bottom:6px">${esc(p)}</li>`).join("")}</ul>
+    <h3 class="mt">Data FlowGuard keeps</h3><p class="muted">Only fields needed for pricing, readiness, invoicing, review, audit and traceability: job IDs, client, agent, type, date, verification status and time, conditions, PO, postcode. Photos, reports, unrelated customer data and credentials are not ingested.</p></div></div>`;
+});
+
+route("/audit", async (c, _, q) => {
+  const r = await GET("/api/audit", q);
+  c.innerHTML = head("Audit Trail", "Append-only: the database rejects any update or delete of these rows. Passwords, tokens, credentials and bank details are never logged.") + `
+  <div class="card flush"><form class="filters" id="af"><label class="f">Action<select name="action"><option value="">Any</option>${r.actions.map(a => `<option ${q.action === a ? "selected" : ""}>${esc(a)}</option>`).join("")}</select></label>
+    <label class="f">User<input type="text" name="actor" value="${esc(q.actor || "")}"></label><label class="f">Search reason / ID<input type="search" name="q" value="${esc(q.q || "")}"></label><button class="btn primary">Apply</button><a class="btn ghost" href="#/audit">Clear</a><span class="tag">append-only</span></form>
+  ${table([{ h: "When", nowrap: 1, v: a => dt(a.ts) }, { h: "User", v: a => `${esc(a.actor)}<div class="faint" style="font-size:11.5px">${esc(a.role.toLowerCase())}</div>` }, { h: "Action", v: a => code(a.action) }, { h: "Entity", v: a => a.entity === "job" ? `<a href="#/jobs/${a.entity_id}">job ${esc(a.entity_id)}</a>` : esc(`${a.entity} ${a.entity_id}`) },
+    { h: "Old → new", v: a => a.old || a.new ? `${esc(a.old)} → <b>${esc(a.new)}</b>` : "" }, { h: "Reason", v: a => `<span style="font-size:12.5px">${esc(a.reason)}</span>` }, { h: "Config version", v: a => esc(a.config_version) }, { h: "AI involvement", v: a => a.ai !== "None" ? `<span class="tag ai">${esc(a.ai)}</span>` : `<span class="faint">none</span>` }], r.rows)}
+  <div class="pager"><span>${num(r.total)} events</span><span style="flex:1"></span><button class="btn sm" ${r.page <= 1 ? "disabled" : ""} id="pp">Newer</button><button class="btn sm" ${r.page * 50 >= r.total ? "disabled" : ""} id="np">Older</button></div></div>`;
+  $("#af").onsubmit = e => { e.preventDefault(); go("#/audit?" + qs(Object.fromEntries(new FormData(e.target)))); };
+  $("#pp").onclick = () => go("#/audit?" + qs({ ...q, page: r.page - 1 })); $("#np").onclick = () => go("#/audit?" + qs({ ...q, page: r.page + 1 }));
+});
+
+route("/ai", async (c) => {
+  const [s, a, log] = await Promise.all([GET("/api/ai/status"), GET("/api/automation"), GET("/api/ai/log").catch(() => ({ rows: [] }))]);
+  const can = ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role);
+  c.innerHTML = head("AI and Automation", "AI sits beside the financial path, never inside it. It explains, searches and proposes through an allow-listed tool gateway. Learned patterns become explicit, versioned rules only after human approval.",
+    `<button class="btn" id="an">Re-analyse review outcomes</button>`) + `
+  <div class="grid g3">
+    <div class="card"><h2>Local model</h2><dl class="kv"><dt>Ollama</dt><dd>${s.ollama.available ? `<span class="st READY">Connected</span>` : `<span class="st neutral">Unavailable</span>`}</dd><dt>Base URL</dt><dd>${esc(s.base_url)}</dd><dt>Model</dt><dd>${esc(s.ollama.model || s.configured_model)}</dd></dl>
+      ${s.ollama.available ? "" : `<div class="note mt">Financial processing is unaffected. Explanations use deterministic templates and the assistant uses the built-in structured parser.${s.embedded_preview ? " (A browser preview cannot reach Ollama.)" : ""}</div>`}</div>
+    <div class="card"><h2>Governance</h2><dl class="kv"><dt>Local AI</dt><dd>Yes</dd><dt>External AI APIs</dt><dd>Disabled</dd><dt>AI financial authority</dt><dd>Disabled</dd><dt>AI direct database access</dt><dd>Disabled</dd><dt>AI can activate config</dt><dd>No</dd><dt>Untrusted data as instructions</dt><dd>Never</dd></dl></div>
+    <div class="card"><h2>Automation maturity</h2>${a.maturity.map(m => `<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><b style="width:56px">Level ${esc(m.level)}</b><span style="flex:1">${esc(m.name)}${m.note ? `<div class="faint" style="font-size:12px">${esc(m.note)}</div>` : ""}</span>${m.state === "never" ? `<span class="st BLOCKED">Never</span>` : `<span class="st READY">Enabled</span>`}</div>`).join("")}</div>
+  </div>
+  <div class="card mt"><h2>Automation opportunities</h2><p class="muted">Learned only from structured human review outcomes. Threshold: at least ${a.thresholds.min_sample} reviews with ${a.thresholds.min_agreement * 100}% agreement. The AI never activates a rule.</p>
+    ${a.rows.length ? a.rows.map(o => `<div class="reason"><div class="row"><span class="tag ai">AUTOMATION OPPORTUNITY</span><b>${esc(o.pattern.replace("+", " + ").toLowerCase())} → ${esc(o.resolution.replace(">", " supersedes ").toLowerCase())}</b><span class="tag">${esc(o.status.toLowerCase().replace(/_/g, " "))}</span></div>
+      <div class="grid g4 mt"><div><div class="muted" style="font-size:12px">Similar exceptions reviewed</div><b style="font-size:18px">${o.sample_size}</b></div><div><div class="muted" style="font-size:12px">Decisions agreeing</div><b style="font-size:18px">${o.agreement}/${o.sample_size}</b></div><div><div class="muted" style="font-size:12px">Est. exceptions avoided</div><b style="font-size:18px">${o.est_monthly_avoided}/month</b></div><div><div class="muted" style="font-size:12px">Straight-through rate</div><b style="font-size:18px">${o.stp_before}% → ${o.stp_after}%</b></div></div>
+      <div class="note mt"><b>Proposed deterministic rule</b><br><code>${esc(o.proposed_rule.text)}</code><br><span class="muted">${o.open_matching} open exceptions match this pattern right now.</span></div>
+      <div class="row mt"><button class="btn sm" data-cases="${o.id}">Inspect cases</button>${can && o.status === "SUGGESTED" ? `<button class="btn sm danger" data-rej="${o.id}">Reject suggestion</button><button class="btn sm primary" data-draft="${o.id}">Create draft rule</button>` : ""}${o.proposal_id ? `<a class="btn sm" href="#/configuration/${o.proposal_id}">Open draft rule #${o.proposal_id}</a>` : ""}</div><div id="cases${o.id}"></div></div>`).join("") : `<div class="empty">No pattern meets the threshold yet.</div>`}</div>
+  <div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>AI interaction log</h2><span class="muted r">Raw prompts are not retained: only a hash and a short preview.</span></div>
+    ${table([{ h: "ID", v: x => code(x.id) }, { h: "When", nowrap: 1, v: x => dt(x.ts) }, { h: "User", v: x => esc(x.actor) }, { h: "Request", v: x => `${code(x.request_type)}<div class="faint" style="font-size:12px">${esc(x.prompt_preview)}</div>` }, { h: "Tools", v: x => esc(x.tools.join(", ") || "–") }, { h: "Records", v: x => `<span style="font-size:12px">${esc(x.records.slice(0, 4).join(", "))}${x.records.length > 4 ? "…" : ""}</span>` }, { h: "Model", v: x => esc(x.model) }, { h: "Outcome", v: x => x.outcome === "REJECTED" || x.outcome === "DENIED" ? `<span class="st BLOCKED">${esc(x.outcome.toLowerCase())}</span>` : esc(x.outcome.toLowerCase().replace(/_/g, " ")) }, { h: "External", v: x => esc(x.external_transmission) }, { h: "Financial changes", v: x => `<b>${esc(x.financial_changes)}</b>` }], log.rows, { empty: "No AI interactions yet. Open the assistant to start." })}</div>`;
+  $("#an").onclick = async () => { await POST("/api/automation/analyse"); onRoute(); };
+  $$("[data-cases]", c).forEach(b => b.onclick = async () => { const r = await GET(`/api/automation/${b.dataset.cases}/cases`); $("#cases" + b.dataset.cases).innerHTML = `<div class="mt">${table([{ h: "Review", v: x => "#" + x.id }, { h: "Job", v: x => `<a href="#/jobs/${x.job_id}">${esc(x.job_ref)}</a>` }, { h: "Reviewer", v: x => esc(x.reviewer) }, { h: "Decision", v: x => code(x.resolution) }, { h: "Reason", v: x => esc(x.reason) }, { h: "Evidence", v: x => esc(x.evidence) }, { h: "When", v: x => dt(x.at) }], r.rows.slice(0, 50))}</div>`; });
+  $$("[data-rej]", c).forEach(b => b.onclick = async () => { await POST(`/api/automation/${b.dataset.rej}/reject`, { reason: "Rejected from AI & Automation page" }); onRoute(); });
+  $$("[data-draft]", c).forEach(b => b.onclick = async () => { try { const p = await POST(`/api/automation/${b.dataset.draft}/draft`); toast("Draft rule created. It needs four-eyes approval before it does anything."); go("#/configuration/" + p.id); } catch (e) { toast(e.message, true); } });
+});
+
+route("/notifications", async (c) => {
+  const r = await GET("/api/notifications");
+  c.innerHTML = head("Notifications", FG.user.role === "AGENT" ? "Updates about your jobs and invoices." : "System events. Items needing a human financial decision are in the Review Centre, not here.", `<button class="btn" id="mr">Mark all as read</button>`) +
+    `<div class="card flush">${table([{ h: "", v: n => n.read ? "" : `<span class="st INVOICED" title="unread">new</span>` }, { h: "When", nowrap: 1, v: n => dt(n.ts) }, { h: "Type", v: n => `<span class="tag">${esc(n.kind.toLowerCase().replace(/_/g, " "))}</span>` }, { h: "Notification", v: n => `<b>${esc(n.title)}</b><div class="muted" style="font-size:12.5px">${esc(n.body)}</div>` }], r.rows, { empty: "No notifications" })}</div>`;
+  $("#mr").onclick = async () => { await POST("/api/notifications/read"); onRoute(); };
+});
+
+route("/settings", async (c) => {
+  const isSA = FG.user.role === "SUPER_ADMIN";
+  const [rb, obs, users] = await Promise.all([GET("/api/rbac").catch(() => null), GET("/api/observability").catch(() => null), isSA ? GET("/api/users") : null]);
+  c.innerHTML = head("Settings", "Users, permissions, governance policy, observability and the production path.") + `
+  <div class="grid g2">
+    <div class="card"><h2>Your account</h2><dl class="kv"><dt>User</dt><dd>${esc(FG.user.display_name)} (${esc(FG.user.username)})</dd><dt>Role</dt><dd>${esc(FG.user.role)}</dd><dt>MFA</dt><dd>${FG.user.mfa_enrolled ? "Enrolled" : "Not enrolled (MFA-ready: TOTP provider integration is a P3 item)"}</dd>
+      <dt>Session</dt><dd>HttpOnly, SameSite=Strict cookie + CSRF token</dd></dl>
+      <h3 class="mt">Change password</h3>${pwForm()}
+      ${isSA ? `<h3 class="mt">Four-eyes policy</h3><div class="row"><select id="fe"><option value="ALL">Every change needs a second approver</option><option value="HIGH_RISK_ONLY">Only high-risk changes need a second approver</option></select><button class="btn" id="feSave">Save</button></div>` : ""}</div>
+    ${obs ? `<div class="card"><h2>Observability</h2><dl class="kv"><dt>Processing errors</dt><dd>${obs.processing_errors}</dd><dt>Failed import rows</dt><dd>${obs.failed_imports}</dd><dt>AI failures</dt><dd>${obs.ai_failures}</dd><dt>AI requests rejected</dt><dd>${obs.ai_rejections}</dd><dt>Access denied</dt><dd>${obs.access_denied}</dd><dt>Failed sign-ins</dt><dd>${obs.failed_logins}</dd><dt>Rule conflicts detected</dt><dd>${obs.rule_conflicts}</dd><dt>Reconciliation mismatches</dt><dd>${obs.reconciliation_mismatches}</dd><dt>Integration failures</dt><dd>${obs.integration_failures}</dd></dl></div>` : ""}
+  </div>
+  ${["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role) ? businessDateCard() : ""}
+  ${users ? `<div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>Users</h2><button class="btn primary sm r" id="addUser">+ Add user</button></div>${table([{ h: "User", v: u => `<b>${esc(u.username)}</b>` }, { h: "Name", v: u => esc(u.display_name) }, { h: "Role", v: u => code(u.role) }, { h: "Agent", v: u => esc(u.agent || "–") }, { h: "Active", v: u => u.active ? `<span class="st READY">Active</span>` : `<span class="st neutral">Inactive</span>` }, { h: "", v: u => `<div class="row" style="flex-wrap:nowrap"><button class="btn sm" data-pw="${esc(u.username)}">Reset password</button>${u.username === FG.user.username ? "" : `<button class="btn sm ${u.active ? "danger" : ""}" data-act="${esc(u.username)}" data-on="${u.active ? 0 : 1}">${u.active ? "Deactivate" : "Activate"}</button>`}</div>` }], users.rows)}</div>` : ""}
+  ${rb ? `<div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>RBAC permission matrix</h2><span class="muted r">Enforced server-side on every request</span></div>${table([{ h: "Permission", v: p => code(p.p) }, ...rb.roles.map(r => ({ h: r.replace("_", " ").toLowerCase(), v: p => p.m[r] ? "✓" : `<span class="faint">–</span>` }))], Object.entries(rb.matrix).map(([p, m]) => ({ p, m })))}</div>` : ""}
+  <div class="grid g2 mt"><div class="card"><h2>Production roadmap</h2>${FG.meta.roadmap.map(p => `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><b style="width:70px">Phase ${p.phase}</b><span style="flex:1">${esc(p.name)}</span><span class="tag">${esc(p.state)}</span></div>`).join("")}<p class="muted mt">See the README for what production still needs (HTTPS, MFA, managed secrets, backups).</p></div></div>`;
+
+  $("#feSave") && ($("#feSave").onclick = async () => { await api("PUT", "/api/settings/four-eyes", { body: { mode: $("#fe").value } }); toast("Four-eyes policy saved and audited"); });
+  bindPwForm(c); bindBusinessDate(c);
+  $("#addUser") && ($("#addUser").onclick = () => userModal());
+  $$("[data-pw]", c).forEach(b => b.onclick = () => resetPwModal(b.dataset.pw));
+  $$("[data-act]", c).forEach(b => b.onclick = async () => { try { await POST(`/api/users/${b.dataset.act}/active`, { active: b.dataset.on === "1" }); toast("Saved"); onRoute(); } catch (e) { toast(e.message, true); } });
+});
+
+/* ---------------------------------------------------------------- agent portal */
+const AGENT_STATUS = { READY: "Ready for invoicing", NEEDS_REVIEW: "Under review", BLOCKED: "On hold" };
+const agentSt = r => r.invoiced ? st("INVOICED", "Invoiced") : st(r.status, AGENT_STATUS[r.status]);
+async function agentHome(c) {
+  const d = await GET("/api/agent/dashboard");
+  c.innerHTML = head(`Hello, ${FG.user.agent?.name || FG.user.display_name}`, "Your jobs, their status and your invoices. You only ever see your own records.") + `
+  <div class="grid g4">${kpi("Total jobs", num(d.total), "", "#/my-jobs")}${kpi("Ready for invoicing", num(d.ready), gbp(d.awaiting_value) + " to be invoiced", "#/my-jobs?status=READY")}${kpi("Under review", num(d.review), "Finance is checking these", "#/my-jobs?status=NEEDS_REVIEW")}${kpi("Invoiced", num(d.invoiced), "", "#/my-invoices")}</div>
+  ${d.blocked ? `<div class="note warn mt">${d.blocked} job(s) are on hold. Open them to see why.</div>` : ""}
+  <div class="grid g2 mt"><div class="card flush"><div class="card-head" style="padding:14px 16px 0"><h2>Recent jobs</h2><a class="r" href="#/my-jobs">All jobs</a></div><div id="rj"></div></div>
+  <div class="card flush"><div class="card-head" style="padding:14px 16px 0"><h2>Invoices</h2><a class="r" href="#/my-invoices">All invoices</a></div>${table([{ h: "Invoice", v: x => `<a href="#/my-invoices/${x.id}">${esc(x.number)}</a>` }, { h: "Date", v: x => dd(x.issue_date) }, { h: "Total", num: 1, v: x => gbp(x.gross) }], d.invoices, { empty: "No invoices yet" })}</div></div>`;
+  $("#rj").innerHTML = agentJobTable(d.recent); bindRows($("#rj"), d.recent, r => go("#/my-jobs/" + r.id));
+}
+const agentJobTable = rows => table([{ h: "Job", v: r => `<b>${esc(r.external_job_id)}</b>` }, { h: "Type", v: r => esc(r.job_type || "–") }, { h: "Date", nowrap: 1, v: r => dd(r.job_date) }, { h: "Status", v: agentSt }, { h: "Your pay", num: 1, v: r => gbp(r.agent_net) }, { h: "Invoice", v: r => esc(r.agent_invoice || "–") }], rows, { onRow: 1, empty: "No jobs" });
+route("/my-jobs", async (c, _, q) => {
+  const r = await GET("/api/jobs", { page_size: 100, ...q });
+  c.innerHTML = head("My Jobs", `${num(r.total)} jobs`) + `<div class="card flush"><div class="filters">${["", "READY", "NEEDS_REVIEW", "BLOCKED"].map(s => `<a class="btn sm ${(q.status || "") === s ? "primary" : ""}" href="#/my-jobs${s ? "?status=" + s : ""}">${s ? AGENT_STATUS[s] : "All"}</a>`).join("")}</div><div id="mj"></div></div>`;
+  $("#mj").innerHTML = agentJobTable(r.rows); bindRows($("#mj"), r.rows, x => go("#/my-jobs/" + x.id));
+});
+route("/my-jobs/:id", async (c, { id }) => {
+  const j = await GET("/api/jobs/" + id);
+  c.innerHTML = head(j.external_job_id, `${esc(j.job_type || "")} · ${dd(j.job_date)}`) + `
+  <div class="card"><div class="row">${agentSt(j)}</div><div class="stack mt">${j.explanations.map(e => `<div class="note ${j.status === "READY" ? "good" : "warn"}" style="font-size:15px">${esc(e)}</div>`).join("")}</div>
+    <dl class="kv mt"><dt>Client</dt><dd>${esc(j.client)}</dd><dt>Date</dt><dd>${dd(j.job_date)}</dd><dt>Conditions</dt><dd>${[j.weekend && "weekend", j.emergency && "emergency", j.revisit && "revisit"].filter(Boolean).join(", ") || "none"}</dd><dt>Your pay (net)</dt><dd>${gbp(j.agent_net)}</dd>
+    <dt>Invoice</dt><dd>${j.my_invoice ? `<a href="#/my-invoices/${j.my_invoice.id}">${esc(j.my_invoice.number)}</a> · ${dd(j.my_invoice.issue_date)}` : j.status === "READY" ? "Will appear on your next invoice" : "No invoice has been generated yet"}</dd></dl>
+    <button class="btn mt" id="ask">${icon("ai", 14)} Ask about this job</button></div>`;
+  $("#ask").onclick = () => { toggleAI(true); aiSend(`Why is job ${j.id} ${j.status === "READY" ? "ready" : "under review"}?`); };
+});
+route("/my-invoices", async (c) => {
+  const r = await GET("/api/invoices");
+  c.innerHTML = head("My Invoices", "Self-billed invoices GSC issued on your behalf, or purchase records for invoices you send.") + `<div class="card flush">${table([{ h: "Invoice", v: x => `<b>${esc(x.number)}</b>` }, { h: "Date", nowrap: 1, v: x => dd(x.issue_date) }, { h: "Jobs", num: 1, v: x => x.lines }, { h: "Net", num: 1, v: x => gbp(x.net) }, { h: "VAT", num: 1, v: x => gbp(x.vat) }, { h: "Total", num: 1, v: x => `<b>${gbp(x.gross)}</b>` }, { h: "Status", v: x => esc(x.status.toLowerCase()) }], r.rows, { onRow: 1, empty: "No invoices yet" })}</div>`;
+  bindRows(c, r.rows, x => go("#/my-invoices/" + x.id));
+});
+route("/my-invoices/:id", async (c, p) => ROUTES["/invoices/:id"](c, p));
+route("/profile", async (c) => {
+  const p = await GET("/api/agent/profile");
+  setTimeout(() => { c.insertAdjacentHTML("beforeend", `<div class="card mt"><h2>Change password</h2>${pwForm()}</div>`); bindPwForm(c); }, 0);
+  c.innerHTML = head("Profile", "Details FlowGuard uses for your invoices. Contact GSC Finance to change them.") + `<div class="card"><dl class="kv"><dt>Agent code</dt><dd>${esc(p.code)}</dd><dt>Name</dt><dd>${esc(p.name)}</dd><dt>Supplier type</dt><dd>${p.supplier_type === "SOLE_TRADER" ? "Sole trader / self-employed" : "Limited company"}</dd><dt>VAT</dt><dd>${p.vat_status === "REGISTERED" ? "Registered " + esc(p.vat_number || "(number missing)") : "Not VAT registered"}</dd><dt>Self-billing</dt><dd>${p.self_billing ? (p.agreement ? `Agreement ${esc(p.agreement.ref)} from ${dd(p.agreement.from)}${p.agreement.to ? " to " + dd(p.agreement.to) : ""}` : "Agreement needed") : "You send your own invoices"}</dd><dt>Region</dt><dd>${esc(p.region)}</dd></dl></div>`;
+});
+
+start();
+
+/* ---------------------------------------------------------------- workbook import summary */
+function workbookView(c, b) {
+  const s = b.summary, k = s.counts || {};
+  const future = (s.notes || []).some(n => n.includes("after the business date"));
+  c.innerHTML = head(`Import #${b.id}: ${b.filename}`, `GSC workbook imported by ${esc(b.uploaded_by)} · ${dt(b.created_at)}`,
+    `<a class="btn" href="#/jobs">Jobs</a><a class="btn" href="#/reviews">Review Centre</a><a class="btn primary" href="#/invoices">Invoicing</a>`) + `
+  <div class="grid g4">${kpi("New tasks", num(s.tasks_added), `${num(s.tasks_unchanged)} unchanged`, "#/jobs")}${kpi("Updated tasks", num(s.tasks_updated), "changed at source", "#/jobs")}${kpi("Clients / agents added", `${num(s.clients_added)} / ${num(s.agents_added)}`, `${num(s.agents_updated)} agents updated`, "#/agents")}${kpi("Rate differences", num((s.rate_differences || []).length), "not applied", "#/rate-cards", (s.rate_differences || []).length ? "bad" : "zero")}</div>
+  ${k.READY !== undefined ? `<div class="grid g3 mt">${kpi("Ready", num(k.READY), "priced, all checks passed", "#/jobs?status=READY")}${kpi("Needs review", num(k.NEEDS_REVIEW), "a person decides", "#/reviews")}${kpi("Blocked", num(k.BLOCKED), "e.g. rejected or unverified", "#/jobs?status=BLOCKED")}</div>` : ""}
+  ${(s.notes || []).length ? `<div class="card mt"><h2>Things to know</h2>${s.notes.map(n => `<div class="note warn" style="margin-bottom:6px">${esc(n)}</div>`).join("")}
+    ${future && ["SUPER_ADMIN", "FINANCE_ADMIN"].includes(FG.user.role) ? `<a class="btn" href="#/settings">Set the business date</a>` : ""}</div>` : `<div class="note good mt">Imported cleanly.</div>`}
+  ${(s.rate_differences || []).length ? `<div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>Rate differences (not applied)</h2><a class="btn sm r" href="#/configuration/new">Propose a change</a></div>${table([{ h: "Client", v: x => code(x.client) }, { h: "Rule", v: x => esc(x.kind === "AGENT_RATE" ? "Special agent rate" : "Rate") }, { h: "Job type", v: x => code(x.job_type) }, { h: "Agent", v: x => esc(x.agent || "–") }, { h: "In force (client / agent / per 30)", v: x => x.in_force ? x.in_force.map(v => v ?? "–").join(" / ") : `<span class="muted">none</span>` }, { h: "Workbook", v: x => x.workbook.map(v => v ?? "–").join(" / ") }], s.rate_differences)}</div>` : ""}
+  ${(s.changed_after_invoicing || []).length ? `<div class="card flush mt"><div class="card-head" style="padding:14px 16px 0"><h2>Invoiced tasks changed at source</h2><span class="muted r">Not changed in FlowGuard. Needs a credit/debit note.</span></div>${table([{ h: "Task", v: x => esc(x.task) }, { h: "Changed fields", v: x => x.fields.map(code).join(" ") }], s.changed_after_invoicing)}</div>` : ""}`;
+}
+
+/* ---------------------------------------------------------------- accounts, users, business date */
+function pwForm() {
+  return `<form class="stack pwf" style="max-width:360px"><label class="f">Current password<input type="password" name="current" autocomplete="current-password" required></label>
+    <label class="f">New password<input type="password" name="new" autocomplete="new-password" minlength="12" required></label>
+    <p class="faint" style="font-size:12px;margin:0">At least 12 characters with upper and lower case letters and a number.</p>
+    <div class="pwerr"></div><div><button class="btn" type="submit">Change password</button></div></form>`;
+}
+function bindPwForm(c) {
+  $$(".pwf", c).forEach(f => f.onsubmit = async e => {
+    e.preventDefault();
+    try { await POST("/api/auth/password", { current: f.current.value, new: f.new.value }); f.reset(); toast("Password changed"); }
+    catch (err) { $(".pwerr", f).innerHTML = errBox(err); }
+  });
+}
+function businessDateCard() {
+  return `<div class="card mt"><h2>Business date</h2><p class="muted">The date FlowGuard treats as "today" for checks like "job date in the future". Leave it on today's date for day-to-day work; fix it to close or re-run a past period, or to process work dated later than today.</p>
+    <div class="row"><span>Currently: <b>${dd(FG.meta.business_date)}</b> ${FG.meta.business_date_fixed ? `<span class="tag">fixed</span>` : `<span class="tag">today's date</span>`}</span></div>
+    <div class="row mt"><input type="date" id="bdIn" value="${FG.meta.business_date}"><button class="btn primary" id="bdSet">Fix to this date</button><button class="btn" id="bdReal" ${FG.meta.business_date_fixed ? "" : "disabled"}>Use today's date</button></div><div id="bdErr"></div></div>`;
+}
+function bindBusinessDate(c) {
+  const save = async v => {
+    try {
+      const r = await PUT("/api/settings/business-date", { date: v });
+      FG.meta = await GET("/api/meta");
+      toast(`Business date ${r.fixed ? "fixed to " + dd(r.business_date) : "now follows today's date"}. ${num(r.changed)} job decisions re-evaluated.`);
+      renderShell(); onRoute();
+    } catch (e) { $("#bdErr", c).innerHTML = errBox(e); }
+  };
+  $("#bdSet", c) && ($("#bdSet", c).onclick = () => save($("#bdIn", c).value));
+  $("#bdReal", c) && ($("#bdReal", c).onclick = () => save(""));
+}
+function userModal() {
+  const roles = [["FINANCE_ADMIN", "Finance Admin: invoices, configuration proposals and approvals"], ["REVIEWER", "Reviewer: decides exceptions"],
+    ["AUDITOR", "Auditor: read-only"], ["SUPER_ADMIN", "Super Admin: users and system settings"], ["AGENT", "Agent: own jobs and invoices only"]];
+  modal(`<h2>Add a user</h2><form id="uf" class="stack">
+    <div class="grid g2"><label class="f">Username<input type="text" name="username" required pattern="[a-z0-9][a-z0-9._-]{2,63}" placeholder="e.g. j.smith"></label>
+    <label class="f">Full name<input type="text" name="display_name" required></label></div>
+    <label class="f">Role<select name="role">${roles.map(([r, l]) => `<option value="${r}">${esc(l)}</option>`).join("")}</select></label>
+    <label class="f" id="agWrap" hidden>Agent (the supplier this login belongs to)<select name="agent_code"><option value="">Choose an agent…</option>${(FG.meta.agents || []).map(a => `<option value="${esc(a.code)}">${esc(a.code)} · ${esc(a.name)}</option>`).join("")}</select></label>
+    <label class="f">Temporary password<input type="text" name="password" required minlength="12" value="${esc(tempPassword())}"></label>
+    <p class="faint" style="font-size:12px;margin:0">Share it securely; they can change it under Settings (staff) or Profile (agents).</p>
+    <div id="uerr2"></div><div class="row"><button class="btn primary" type="submit">Create user</button><button class="btn" type="button" data-close>Cancel</button></div></form>`, (m, close) => {
+    const f = $("#uf", m);
+    f.role.onchange = () => { const ag = f.role.value === "AGENT"; $("#agWrap", m).hidden = !ag; f.agent_code.required = ag; if (!ag) f.agent_code.value = ""; };
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const d = Object.fromEntries(new FormData(f)); if (d.role !== "AGENT") delete d.agent_code;
+      try { await POST("/api/users", d); close(); toast(`User ${d.username} created`); onRoute(); } catch (err) { $("#uerr2", m).innerHTML = errBox(err); }
+    };
+  });
+}
+function resetPwModal(username) {
+  modal(`<h2>Reset password for ${esc(username)}</h2><form id="rp" class="stack"><label class="f">New temporary password<input type="text" name="password" required minlength="12" value="${esc(tempPassword())}"></label>
+    <p class="faint" style="font-size:12px;margin:0">Their existing sessions are signed out.</p><div id="rperr"></div>
+    <div class="row"><button class="btn primary" type="submit">Reset</button><button class="btn" type="button" data-close>Cancel</button></div></form>`, (m, close) => {
+    $("#rp", m).onsubmit = async e => { e.preventDefault(); try { await POST(`/api/users/${username}/password`, { password: e.target.password.value }); close(); toast("Password reset"); } catch (err) { $("#rperr", m).innerHTML = errBox(err); } };
+  });
+}
+function tempPassword() {
+  const a = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789", r = new Uint32Array(16); crypto.getRandomValues(r);
+  let p = Array.from(r, x => a[x % a.length]).join("");
+  return /[a-z]/.test(p) && /[A-Z]/.test(p) && /\d/.test(p) ? p : tempPassword();
+}
+</script></body></html>

@@ -1,0 +1,13 @@
+.env
+*.db
+__pycache__/
+.pytest_cache/
+dist/
+.venv/
+*.db-journal
+.claude/
+
+# Confidential client data: never commit
+data/
+*.xlsx
+docs/DATAPACK_TEST_REPORT.md
